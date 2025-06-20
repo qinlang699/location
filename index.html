@@ -832,7 +832,7 @@
         <div class="search-form">
             <div class="form-group">
                 <label for="locationKeyword">1. 输入中心点关键字:</label>
-                <input type="text" id="locationKeyword" placeholder="例如：南京万达" value="南京市顶程考研(全日制集训校区)">
+                <input type="text" id="locationKeyword" placeholder="例如：北京万达" value="南京顶程考研(全日制集训校区)">
             </div>
             <button onclick="searchLocationByKeyword()" id="searchLocationBtn">📍 定位中心点 </button>
             <div id="locationStatus" style="margin-top: 15px;"></div>
@@ -1257,7 +1257,7 @@
 
                 let infoHtml = `<div class="poi-info-line"><button class="address-btn" data-address="${escapedAddress}"> 详细地址 </button></div>`;
                 infoHtml += createInfoLine('📞电话:', formatPhoneNumber(poi.business?.tel));
-                infoHtml += createInfoLine('🏦类型:', displayType);
+                infoHtml += createInfoLine('🍴类型:', displayType);
                 infoHtml += createInfoLine('📏直线距离:', poi.distance ? poi.distance + '米' : '距离未知');
                 
                 if (poi.business_area) {
