@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高德地图周边搜索A</title>
+    <title>高德地图周边搜索</title>
     <style>
         /* For Webkit browsers (Chrome, Safari, Edge) */
         ::-webkit-scrollbar {
@@ -1256,18 +1256,18 @@
                 };
 
                 let infoHtml = `<div class="poi-info-line"><button class="address-btn" data-address="${escapedAddress}"> 详细地址 </button></div>`;
-                infoHtml += createInfoLine('📞 电话:', formatPhoneNumber(poi.business?.tel));
-                infoHtml += createInfoLine('🏷️ 类型:', displayType);
-                infoHtml += createInfoLine('📏 直线距离:', poi.distance ? poi.distance + '米' : '距离未知');
+                infoHtml += createInfoLine('📞电话:', formatPhoneNumber(poi.business?.tel));
+                infoHtml += createInfoLine('🏦类型:', displayType);
+                infoHtml += createInfoLine('📏直线距离:', poi.distance ? poi.distance + '米' : '距离未知');
                 
                 if (poi.business_area) {
-                    infoHtml += createInfoLine('🏢 商圈:', poi.business_area);
+                    infoHtml += createInfoLine('🏢商圈:', poi.business_area);
                 }
                 if (poi.business?.rating && parseFloat(poi.business.rating) > 0) {
-                    infoHtml += createInfoLine('⭐ 评分:', poi.business.rating);
+                    infoHtml += createInfoLine('⭐评分:', poi.business.rating);
                 }
                 if (poi.business?.cost) {
-                    infoHtml += createInfoLine('💰 人均:', poi.business.cost + '元');
+                    infoHtml += createInfoLine('💰人均:', poi.business.cost + '元');
                 }
                 
                 html += `
