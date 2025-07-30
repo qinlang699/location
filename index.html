@@ -3,838 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔧 坐标系转换修复系统</title>
-    <meta property="og:title" content="坐标系转换修复系统" />
-    <meta property="og:type" content="website" />
-    <meta property="og:description" content="自动修复WGS-84到GCJ-02坐标系转换误差，解决600米定位偏移问题" />
-    
-    <!-- 引入高德地图JS API 2.0和定位插件 -->
+    <title>🔧 定位系统</title>
     <script src="https://webapi.amap.com/maps?v=2.0&key=dcfb48c0f9cb749e59c5031e83cb6e95&plugin=AMap.Geolocation"></script>
-    
     <style>
-        /* ===============================================
-           全局样式设置
-           =============================================== */
-        ::-webkit-scrollbar {
-            width: 12px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(45deg, #1890ff, #40a9ff);
-            border-radius: 6px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(45deg, #096dd9, #1890ff);
-        }
-        
-        * {
-            -webkit-tap-highlight-color: transparent !important;
-            outline: none !important;
-        }
-        
-        /* ===============================================
-           基础布局样式
-           =============================================== */
         body {
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
         }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 120, 120, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(120, 120, 120, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 120, 120, 0.1) 0%, transparent 50%);
-            pointer-events: none;
-            z-index: 1;
-        }
-        
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 
-                0 20px 40px rgba(0,0,0,0.1),
-                0 10px 20px rgba(0,0,0,0.05),
-                inset 0 1px 0 rgba(255,255,255,0.2);
-            max-width: 900px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 600px;
             margin: 0 auto;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            width: 100%;
-            box-sizing: border-box;
-            position: relative;
-            z-index: 2;
-            border: 1px solid rgba(255,255,255,0.2);
         }
-        
         h1 {
-            color: #333;
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 28px;
-            font-weight: 600;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        /* ===============================================
-           定位信息卡片样式
-           =============================================== */
-        .location-info-card {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 25px;
-            box-shadow: 
-                0 8px 16px rgba(0,0,0,0.1),
-                inset 0 1px 0 rgba(255,255,255,0.8);
-            border: 1px solid rgba(24, 144, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .location-info-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #1890ff, #40a9ff, #1890ff);
-            background-size: 200% 100%;
-            animation: shimmer 2s linear infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        
-        .location-method {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        
-        .method-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #1890ff, #40a9ff);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-            box-shadow: 0 4px 8px rgba(24, 144, 255, 0.3);
-        }
-        
-        .method-info {
-            flex: 1;
-        }
-        
-        .method-title {
-            font-size: 18px;
-            font-weight: bold;
             color: #333;
-            margin-bottom: 5px;
         }
-        
-        .method-desc {
-            font-size: 14px;
-            color: #666;
-            line-height: 1.4;
-        }
-        
-        /* ===============================================
-           按钮样式
-           =============================================== */
-        .location-button {
-            background: linear-gradient(135deg, #1890ff 0%, #40a9ff 100%);
+        button {
+            background: #1890ff;
             color: white;
-            padding: 18px 40px;
+            padding: 15px 30px;
             border: none;
-            border-radius: 50px;
+            border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
-            font-weight: 600;
-            margin: 20px auto;
+            font-size: 16px;
             display: block;
-            min-width: 280px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-                0 8px 20px rgba(24, 144, 255, 0.3),
-                0 4px 8px rgba(24, 144, 255, 0.2);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            margin: 20px auto;
+            min-width: 200px;
         }
-        
-        .location-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.5s;
+        button:hover {
+            background: #40a9ff;
         }
-        
-        .location-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 
-                0 12px 30px rgba(24, 144, 255, 0.4),
-                0 8px 15px rgba(24, 144, 255, 0.3);
-        }
-        
-        .location-button:hover::before {
-            left: 100%;
-        }
-        
-        .location-button:active {
-            transform: translateY(0);
-            box-shadow: 
-                0 6px 15px rgba(24, 144, 255, 0.3),
-                0 3px 6px rgba(24, 144, 255, 0.2);
-        }
-        
-        .location-button:disabled {
-            background: linear-gradient(135deg, #ccc, #999);
+        button:disabled {
+            background: #ccc;
             cursor: not-allowed;
-            transform: none;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
         }
-        
-        .location-button:disabled::before {
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #1890ff;
             display: none;
         }
-        
-        /* ===============================================
-           状态显示样式
-           =============================================== */
-        .status {
-            text-align: center;
-            margin: 20px 0;
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 16px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .status.loading {
-            background: linear-gradient(135deg, #e6f7ff, #bae7ff);
-            color: #1890ff;
-            border: 2px solid rgba(24, 144, 255, 0.2);
-            animation: pulse 2s ease-in-out infinite;
-        }
-        
-        .status.loading::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(24, 144, 255, 0.1), transparent);
-            animation: loading-wave 1.5s linear infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-        }
-        
-        @keyframes loading-wave {
-            0% { left: -100%; }
-            100% { left: 100%; }
-        }
-        
-        .status.success {
-            background: linear-gradient(135deg, #f6ffed, #d9f7be);
-            color: #52c41a;
-            border: 2px solid rgba(82, 196, 26, 0.2);
-        }
-        
-        .status.error {
-            background: linear-gradient(135deg, #fff2f0, #ffccc7);
-            color: #ff4d4f;
-            border: 2px solid rgba(255, 77, 79, 0.2);
-        }
-        
-        /* ===============================================
-           信息卡片样式
-           =============================================== */
-        .info-card {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 25px;
-            border-radius: 15px;
-            margin: 20px 0;
-            box-shadow: 
-                0 8px 20px rgba(0,0,0,0.1),
-                0 4px 8px rgba(0,0,0,0.05);
-            border-left: 5px solid;
-            position: relative;
-            backdrop-filter: blur(5px);
-        }
-        
-        .coordinates-card {
-            border-left-color: #1890ff;
-        }
-        
-        .accuracy-card {
-            border-left-color: #fa8c16;
-        }
-        
-        .address-card {
-            border-left-color: #52c41a;
-        }
-        
-        .info-card h3 {
-            margin: 0 0 20px 0;
-            color: #333;
-            font-size: 20px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
         .info-item {
-            margin: 12px 0;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(0,0,0,0.05);
-            display: flex;
-            align-items: center;
-            transition: all 0.2s ease;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
         }
-        
         .info-item:last-child {
             border-bottom: none;
         }
-        
-        .info-item:hover {
-            background: rgba(24, 144, 255, 0.05);
-            padding-left: 10px;
-            border-radius: 8px;
-        }
-        
-        .info-label {
+        .label {
             font-weight: bold;
             color: #333;
-            min-width: 120px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            display: inline-block;
+            width: 100px;
         }
-        
-        .info-value {
+        .value {
             color: #666;
-            flex: 1;
-            font-family: 'Courier New', monospace;
+            font-family: monospace;
         }
-        
-        /* ===============================================
-           精度等级样式
-           =============================================== */
-        .accuracy-level {
-            display: inline-flex;
-            align-items: center;
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-size: 14px;
-            font-weight: bold;
-            gap: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        
-        .level-excellent { 
-            background: linear-gradient(135deg, #f6ffed, #d9f7be); 
-            color: #52c41a;
-            border: 2px solid rgba(82, 196, 26, 0.3);
-        }
-        
-        .level-good { 
-            background: linear-gradient(135deg, #e6f7ff, #bae7ff); 
-            color: #1890ff; 
-            border: 2px solid rgba(24, 144, 255, 0.3);
-        }
-        
-        .level-medium { 
-            background: linear-gradient(135deg, #fff7e6, #ffd591); 
-            color: #fa8c16; 
-            border: 2px solid rgba(250, 140, 22, 0.3);
-        }
-        
-        .level-poor { 
-            background: linear-gradient(135deg, #fff2f0, #ffccc7); 
-            color: #ff4d4f; 
-            border: 2px solid rgba(255, 77, 79, 0.3);
-        }
-        
-        /* ===============================================
-           定位类型标签
-           =============================================== */
-        .location-type-tag {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 12px;
-            background: linear-gradient(135deg, #1890ff, #40a9ff);
-            color: white;
-            border-radius: 20px;
+        .console {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
             font-size: 12px;
-            font-weight: 600;
-            box-shadow: 0 2px 4px rgba(24, 144, 255, 0.3);
-        }
-        
-        /* ===============================================
-           响应式设计
-           =============================================== */
-        @media (max-width: 768px) {
-            .container {
-                padding: 25px;
-                margin: 10px;
-                border-radius: 15px;
-            }
-            
-            h1 {
-                font-size: 24px;
-            }
-            
-            .location-button {
-                min-width: 100%;
-                padding: 16px 30px;
-            font-size: 16px;
-        }
-        
-            .info-label {
-                min-width: 100px;
-            font-size: 14px;
-        }
-        
-            .location-method {
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-            
-            .method-icon {
-                margin: 0 auto;
-            }
-        }
-        
-        /* ===============================================
-           动画效果
-           =============================================== */
-        .fade-in {
-            animation: fadeIn 0.5s ease-out;
-        }
-        
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        .bounce-in {
-            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        @keyframes bounceIn {
-            0% {
-                opacity: 0;
-                transform: scale(0.3);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.05);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin: 20px 0;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎉 坐标系转换修复系统</h1>
+        <h1>🔧 定位系统</h1>
         
-        <div class="location-info-card fade-in">
-            <div class="location-method">
-                <div class="method-icon">🔧</div>
-                <div class="method-info">
-                    <div class="method-title">自动修复WGS-84→GCJ-02转换误差</div>
-                    <div class="method-desc">
-                        智能检测坐标系 + 自动转换API + 本地算法备用 + 实时偏移分析<br>
-                        📱 支持手机端控制台输出 | ✅ 已修复600米坐标系误差
-        </div>
-                </div>
-        </div>
+        <button id="locationBtn" onclick="startLocation()">🚀 开始定位</button>
+        <button onclick="toggleConsole()">📱 显示/隐藏控制台</button>
         
-            <div id="browserTip" class="info-item" style="margin-top: 15px; padding: 10px; background: rgba(250, 140, 22, 0.1); border-radius: 8px; border-left: 3px solid #fa8c16;">
-                <div class="info-label">💡 定位精度提示:</div>
-                <div class="info-value" id="browserTipText">正在检测浏览器环境...</div>
-            </div>
-        </div>
-        
-        <button id="locationBtn" class="location-button">
-            🔧 启动坐标系转换修复
-        </button>
-        
-        <button id="multiSampleBtn" class="location-button" style="background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%); margin-top: 10px;">
-            🎉 坐标转换已修复600米误差
-        </button>
-        
-        <button id="toggleConsole" class="location-button" style="background: linear-gradient(135deg, #722ed1 0%, #9254de 100%); margin-top: 10px; min-width: auto; padding: 12px 20px; font-size: 14px;">
-            📱 显示/隐藏控制台
-        </button>
-        
-        <!-- 问题分析和解决方案说明卡片 -->
-        <div class="location-info-card fade-in" style="margin-top: 20px; background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);">
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h3 style="color: #1890ff; margin: 0;">🔍 问题分析：为什么之前结果一模一样？</h3>
-            </div>
-            
-            <div class="info-item" style="border-bottom: 1px solid rgba(24,144,255,0.1); margin: 10px 0; padding-bottom: 10px;">
-                <div class="info-label">❌ 之前的问题:</div>
-                <div class="info-value">
-                    显示的是 <code>regeocode.formatted_address</code><br>
-                    <small style="color: #666;">→ 这是高德根据行政区划算法生成的地址，不是最近地标！</small>
-                </div>
-            </div>
-            
-            <div class="info-item" style="border-bottom: 1px solid rgba(24,144,255,0.1); margin: 10px 0; padding-bottom: 10px;">
-                <div class="info-label">✅ 现在的改进:</div>
-                <div class="info-value">
-                    优先显示 <code>regeocode.pois[0]</code> (距离最近的POI)<br>
-                    <small style="color: #666;">→ 智能多半径搜索，找到真正最近的地标建筑！</small>
-                </div>
-        </div>
-        
-            <div class="info-item" style="border-bottom: 1px solid rgba(24,144,255,0.1); margin: 10px 0; padding-bottom: 10px;">
-                <div class="info-label">🎯 智能优化:</div>
-                <div class="info-value">
-                    • 20米→50米→100米→200米 渐进式搜索<br>
-                    • 优先选择最小半径内的精确地标<br>
-                    • 实时显示距离和精度评估<br>
-                    • 多种定位结果对比分析
-                </div>
-            </div>
-            
-            <div class="info-item" style="margin: 10px 0;">
-                <div class="info-label">📊 预期改进效果:</div>
-                <div class="info-value">
-                    <strong>🎯 定位描述精确度：</strong> 从"某某区某某街道" → "距离XX建筑X米"<br>
-                    <strong>🔍 空间分辨率：</strong> 从行政区划级别 → 具体地标建筑级别<br>
-                    <strong>📏 实用性：</strong> 更便于用户确认和导航定位
-                </div>
-            </div>
-        </div>
-        
-        <!-- 坐标系转换修复说明卡片 -->
-        <div class="location-info-card fade-in" style="margin-top: 20px; background: linear-gradient(135deg, #f6ffed 0%, #d9f7be 100%);">
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h3 style="color: #52c41a; margin: 0;">🎉 已修复！坐标系转换600米误差</h3>
-            </div>
-            
-            <div class="info-item" style="border-bottom: 1px solid rgba(82,196,26,0.1); margin: 10px 0; padding-bottom: 10px;">
-                <div class="info-label">🎯 问题根源:</div>
-                <div class="info-value">
-                    高德JS API返回WGS-84坐标，但逆地理编码需要GCJ-02坐标<br>
-                    <small style="color: #666;">→ 坐标系不匹配导致200-700米偏移</small>
-                </div>
-            </div>
-            
-            <div class="info-item" style="border-bottom: 1px solid rgba(82,196,26,0.1); margin: 10px 0; padding-bottom: 10px;">
-                <div class="info-label">✅ 修复方案:</div>
-                <div class="info-value">
-                    🔧 <strong>自动坐标系转换</strong><br>
-                    • 检测isConverted状态<br>
-                    • 自动调用高德坐标转换API<br>
-                    • 备用本地转换算法<br>
-                    • 实时显示转换偏移距离
-                </div>
-            </div>
-            
-            <div class="info-item" style="margin: 10px 0;">
-                <div class="info-label">📊 预期效果:</div>
-                <div class="info-value">
-                    <strong>🎯 误差大幅减少：</strong> 600米 → 10-50米范围<br>
-                    <strong>🔍 地址精确度：</strong> 从区域级别 → 建筑级别<br>
-                    <strong>📱 自动处理：</strong> 无需手动干预，智能转换
-                </div>
-            </div>
-        </div>
-        
-        <!-- 其他高精度方案说明 -->
-        <div class="location-info-card fade-in" style="margin-top: 20px; background: linear-gradient(135deg, #fff2f0 0%, #ffebe6 100%);">
-            <div style="text-align: center; margin-bottom: 15px;">
-                <h3 style="color: #ff4d4f; margin: 0;">🚀 更高精度的替代方案</h3>
-            </div>
-            
-            <div class="info-item" style="margin: 10px 0;">
-                <div class="info-label">💡 推荐方案排序:</div>
-                <div class="info-value">
-                    1️⃣ <strong>坐标系转换修复</strong> (10-50米精度) ✅ 已实现<br>
-                    2️⃣ <strong>微信公众号JSSDK</strong> (5-30米精度)<br>
-                    3️⃣ <strong>原生APP开发</strong> (3-15米精度)<br>
-                    4️⃣ <strong>多次采样算法优化</strong> (改进20-50%)<br>
-                    5️⃣ <strong>用户手动修正</strong> (人工辅助)
-                </div>
-            </div>
-        </div>
-        
-        <div id="status" class="status" style="display: none;"></div>
-        
-        <!-- 手机控制台显示区域 -->
-        <div id="mobileConsole" class="info-card" style="display: none; background: #1e1e1e; color: #00ff00; font-family: 'Courier New', monospace; font-size: 12px; max-height: 300px; overflow-y: auto; border-left-color: #00ff00;">
-            <h3 style="color: #00ff00; margin: 0 0 15px 0;">📱 移动端控制台输出</h3>
-            <div id="consoleOutput" style="white-space: pre-wrap; line-height: 1.4;"></div>
-            <button id="clearConsole" style="margin-top: 10px; background: #333; color: #00ff00; border: 1px solid #00ff00; padding: 5px 10px; border-radius: 4px; cursor: pointer;">清空控制台</button>
-        </div>
-        
-        <div id="coordinates" class="info-card coordinates-card fade-in" style="display: none;"></div>
-        
-        <div id="accuracy" class="info-card accuracy-card fade-in" style="display: none;"></div>
-        
-        <div id="addressInfo" class="info-card address-card fade-in" style="display: none;"></div>
+        <div id="console" class="console"></div>
+        <div id="result" class="result"></div>
     </div>
 
     <script>
-        // 高德地图API密钥
         const AMAP_KEY = 'dcfb48c0f9cb749e59c5031e83cb6e95';
-        
-        // DOM元素引用
-        const locationBtn = document.getElementById('locationBtn');
-        const multiSampleBtn = document.getElementById('multiSampleBtn');
-        const toggleConsoleBtn = document.getElementById('toggleConsole');
-        const mobileConsoleDiv = document.getElementById('mobileConsole');
-        const consoleOutputDiv = document.getElementById('consoleOutput');
-        const clearConsoleBtn = document.getElementById('clearConsole');
-        const statusDiv = document.getElementById('status');
-        const coordinatesDiv = document.getElementById('coordinates');
-        const accuracyDiv = document.getElementById('accuracy');
-        const addressInfoDiv = document.getElementById('addressInfo');
-
-        // 全局变量
+        let consoleDiv = document.getElementById('console');
+        let resultDiv = document.getElementById('result');
+        let locationBtn = document.getElementById('locationBtn');
         let geolocation = null;
-        let consoleVisible = false;
-        let originalConsole = {};
 
-        // 手机控制台功能
-        function initMobileConsole() {
-            // 保存原始console方法
-            originalConsole.log = console.log;
-            originalConsole.error = console.error;
-            originalConsole.warn = console.warn;
-            originalConsole.info = console.info;
-            
-            // 重写console方法以捕获输出
-            console.log = function(...args) {
-                originalConsole.log.apply(console, args);
-                addToMobileConsole('log', args);
-            };
-            
-            console.error = function(...args) {
-                originalConsole.error.apply(console, args);
-                addToMobileConsole('error', args);
-            };
-            
-            console.warn = function(...args) {
-                originalConsole.warn.apply(console, args);
-                addToMobileConsole('warn', args);
-            };
-            
-            console.info = function(...args) {
-                originalConsole.info.apply(console, args);
-                addToMobileConsole('info', args);
-            };
+        // 控制台输出
+        function log(message) {
+            const time = new Date().toLocaleTimeString();
+            consoleDiv.textContent += `[${time}] ${message}\n`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+            console.log(message);
         }
 
-        function addToMobileConsole(type, args) {
-            const timestamp = new Date().toLocaleTimeString();
-            const message = args.map(arg => 
-                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
-            ).join(' ');
-            
-            let color = '#00ff00';
-            let prefix = 'ℹ️';
-            
-            switch(type) {
-                case 'error':
-                    color = '#ff4444';
-                    prefix = '❌';
-                    break;
-                case 'warn':
-                    color = '#ffaa00';
-                    prefix = '⚠️';
-                    break;
-                case 'info':
-                    color = '#00aaff';
-                    prefix = 'ℹ️';
-                    break;
-            }
-            
-            const logEntry = document.createElement('div');
-            logEntry.style.color = color;
-            logEntry.style.marginBottom = '5px';
-            logEntry.style.borderBottom = '1px solid #333';
-            logEntry.style.paddingBottom = '2px';
-            logEntry.innerHTML = `[${timestamp}] ${prefix} ${message}`;
-            
-            consoleOutputDiv.appendChild(logEntry);
-            consoleOutputDiv.scrollTop = consoleOutputDiv.scrollHeight;
+        function toggleConsole() {
+            consoleDiv.style.display = consoleDiv.style.display === 'none' ? 'block' : 'none';
         }
 
-        function toggleMobileConsole() {
-            consoleVisible = !consoleVisible;
-            mobileConsoleDiv.style.display = consoleVisible ? 'block' : 'none';
-            
-            if (consoleVisible) {
-                mobileConsoleDiv.classList.add('bounce-in');
-                console.log('📱 手机控制台已启用，将显示所有日志信息');
-            }
-        }
-
-        function clearMobileConsole() {
-            consoleOutputDiv.innerHTML = '';
-            console.log('🧹 控制台已清空');
-        }
-
-        // WGS-84 转 GCJ-02 坐标转换（修复600米误差的关键函数）
-        async function convertWGS84ToGCJ02(wgsLng, wgsLat) {
-            console.log('🔄 开始坐标系转换...');
-            
-            // 方法1：使用高德坐标转换API（推荐）
+        // WGS-84转GCJ-02坐标转换
+        async function convertCoords(wgsLng, wgsLat) {
             try {
-                const convertUrl = `https://restapi.amap.com/v3/assistant/coordinate/convert?` +
-                    `locations=${wgsLng},${wgsLat}&` +
-                    `coordsys=gps&` +  // 输入坐标系：GPS(WGS-84)
-                    `output=json&` +
-                    `key=${AMAP_KEY}`;
-                
-                console.log('📡 坐标转换API请求:', convertUrl);
-                
-                const response = await fetch(convertUrl);
+                const url = `https://restapi.amap.com/v3/assistant/coordinate/convert?locations=${wgsLng},${wgsLat}&coordsys=gps&output=json&key=${AMAP_KEY}`;
+                const response = await fetch(url);
                 const data = await response.json();
-                
-                console.log('📦 坐标转换API响应:', data);
                 
                 if (data.status === '1' && data.locations) {
                     const [gcjLng, gcjLat] = data.locations.split(',').map(Number);
-                    console.log('✅ API转换成功');
+                    const offsetDistance = calculateDistance(wgsLat, wgsLng, gcjLat, gcjLng);
+                    log(`✅ 坐标转换成功: 偏移${Math.round(offsetDistance)}米`);
                     return { longitude: gcjLng, latitude: gcjLat };
-                } else {
-                    throw new Error('API转换失败: ' + (data.info || '未知错误'));
                 }
+                throw new Error('API转换失败');
             } catch (error) {
-                console.warn('⚠️ API转换失败，使用本地算法:', error.message);
-                
-                // 方法2：本地转换算法（备用方案）
-                return convertWGS84ToGCJ02Local(wgsLng, wgsLat);
-            }
-        }
-
-        // 本地WGS-84转GCJ-02算法（当API失败时使用）
-        function convertWGS84ToGCJ02Local(wgsLng, wgsLat) {
-            console.log('🧮 使用本地转换算法...');
-            
-            // 判断是否在中国境内
-            if (isOutOfChina(wgsLng, wgsLat)) {
-                console.log('📍 坐标在中国境外，无需转换');
+                log(`❌ 坐标转换失败: ${error.message}`);
                 return { longitude: wgsLng, latitude: wgsLat };
             }
-            
-            // WGS-84 to GCJ-02 转换算法（简化版）
-            const a = 6378245.0; // 椭球参数
-            const ee = 0.00669342162296594323; // 偏心率平方
-            
-            let dLat = transformLat(wgsLng - 105.0, wgsLat - 35.0);
-            let dLng = transformLng(wgsLng - 105.0, wgsLat - 35.0);
-            
-            const radLat = wgsLat / 180.0 * Math.PI;
-            let magic = Math.sin(radLat);
-            magic = 1 - ee * magic * magic;
-            const sqrtMagic = Math.sqrt(magic);
-            
-            dLat = (dLat * 180.0) / ((a * (1 - ee)) / (magic * sqrtMagic) * Math.PI);
-            dLng = (dLng * 180.0) / (a / sqrtMagic * Math.cos(radLat) * Math.PI);
-            
-            const gcjLat = wgsLat + dLat;
-            const gcjLng = wgsLng + dLng;
-            
-            console.log(`✅ 本地转换完成: 偏移 ${dLng.toFixed(6)}°, ${dLat.toFixed(6)}°`);
-            
-            return { longitude: gcjLng, latitude: gcjLat };
         }
 
-        // 辅助函数：纬度转换
-        function transformLat(lng, lat) {
-            let ret = -100.0 + 2.0 * lng + 3.0 * lat + 0.2 * lat * lat + 
-                     0.1 * lng * lat + 0.2 * Math.sqrt(Math.abs(lng));
-            ret += (20.0 * Math.sin(6.0 * lng * Math.PI) + 20.0 * 
-                   Math.sin(2.0 * lng * Math.PI)) * 2.0 / 3.0;
-            ret += (20.0 * Math.sin(lat * Math.PI) + 40.0 * 
-                   Math.sin(lat / 3.0 * Math.PI)) * 2.0 / 3.0;
-            ret += (160.0 * Math.sin(lat / 12.0 * Math.PI) + 320 * 
-                   Math.sin(lat * Math.PI / 30.0)) * 2.0 / 3.0;
-            return ret;
-        }
-
-        // 辅助函数：经度转换
-        function transformLng(lng, lat) {
-            let ret = 300.0 + lng + 2.0 * lat + 0.1 * lng * lng + 
-                     0.1 * lng * lat + 0.1 * Math.sqrt(Math.abs(lng));
-            ret += (20.0 * Math.sin(6.0 * lng * Math.PI) + 20.0 * 
-                   Math.sin(2.0 * lng * Math.PI)) * 2.0 / 3.0;
-            ret += (20.0 * Math.sin(lng * Math.PI) + 40.0 * 
-                   Math.sin(lng / 3.0 * Math.PI)) * 2.0 / 3.0;
-            ret += (150.0 * Math.sin(lng / 12.0 * Math.PI) + 300.0 * 
-                   Math.sin(lng / 30.0 * Math.PI)) * 2.0 / 3.0;
-            return ret;
-        }
-
-        // 判断是否在中国境外
-        function isOutOfChina(lng, lat) {
-            return lng < 72.004 || lng > 137.8347 || lat < 0.8293 || lat > 55.8271;
-        }
-
-        // 计算两点之间的距离（米）
+        // 计算距离
         function calculateDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371000; // 地球半径（米）
+            const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLng = (lng2 - lng1) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -844,778 +144,159 @@
             return R * c;
         }
 
-        // 状态显示函数
-        function showStatus(message, type = 'loading') {
-            statusDiv.innerHTML = `<div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                ${type === 'loading' ? '<div style="width: 20px; height: 20px; border: 2px solid #1890ff; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>' : ''}
-                <span>${message}</span>
-            </div>`;
-            statusDiv.className = `status ${type}`;
-            statusDiv.style.display = 'block';
-            
-            // 添加旋转动画CSS
-            if (type === 'loading') {
-                const style = document.createElement('style');
-                style.textContent = `
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
-        }
-
-        function hideStatus() {
-            statusDiv.style.display = 'none';
-        }
-
-        // 显示坐标信息
-        function showCoordinates(latitude, longitude, accuracy, timestamp, locationType = '', info = {}) {
-            const date = new Date(timestamp);
-            
-            coordinatesDiv.innerHTML = `
-                <h3>📍 精确位置坐标</h3>
-                
-                <div class="info-item">
-                    <div class="info-label">🌐 纬度:</div>
-                    <div class="info-value">${latitude.toFixed(8)}°</div>
-                    </div>
-                    
-                <div class="info-item">
-                    <div class="info-label">🌐 经度:</div>
-                    <div class="info-value">${longitude.toFixed(8)}°</div>
-                    </div>
-                    
-                <div class="info-item">
-                    <div class="info-label">🎯 精度范围:</div>
-                    <div class="info-value">±${Math.round(accuracy)}米</div>
-                    </div>
-                    
-                <div class="info-item">
-                    <div class="info-label">⏰ 定位时间:</div>
-                    <div class="info-value">${date.toLocaleString()}</div>
-                    </div>
-                    
-                ${locationType ? `
-                <div class="info-item">
-                    <div class="info-label">📡 定位方式:</div>
-                    <div class="info-value">
-                        <span class="location-type-tag">${locationType}</span>
-                        </div>
-                        </div>
-                ` : ''}
-                
-                                <div class="info-item">
-                    <div class="info-label">🔧 坐标系统:</div>
-                    <div class="info-value">
-                        <span class="location-type-tag">
-                            GCJ-02 (高德坐标系) - 已转换
-                        </span>
-                    </div>
-                </div>
-                
-                ${info.originalCoords ? `
-                <div class="info-item">
-                    <div class="info-label">📍 原始坐标:</div>
-                    <div class="info-value">${info.originalCoords} (WGS-84)</div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">🔄 转换后坐标:</div>
-                    <div class="info-value">${info.convertedCoords} (GCJ-02)</div>
-                </div>
-                ` : ''}
-                
-                <div class="info-item">
-                    <div class="info-label">🔗 数据兼容性:</div>
-                    <div class="info-value">✅ 与逆地理编码API完全兼容 (坐标系已统一)</div>
-                </div>
-                    
-                ${info.isOptimized ? `
-                <div class="info-item">
-                    <div class="info-label">🧠 优化算法:</div>
-                    <div class="info-value">
-                        <span class="location-type-tag">多次采样智能优化</span>
-                    </div>
-                </div>
-                    
-                <div class="info-item">
-                    <div class="info-label">🎯 优化置信度:</div>
-                    <div class="info-value">${(info.confidence * 100).toFixed(1)}%</div>
-                    </div>
-                ` : ''}
-            `;
-            coordinatesDiv.style.display = 'block';
-            coordinatesDiv.classList.add('bounce-in');
-        }
-
-        // 显示精度评估
-        function showAccuracyInfo(accuracy, info = {}) {
-            let level, levelClass, description, recommendations;
-            
-            if (accuracy <= 10) {
-                level = '🟢 极高精度';
-                levelClass = 'level-excellent';
-                description = 'GPS级别精度，误差极小';
-                recommendations = '适合：精确导航、测量、定位打卡';
-            } else if (accuracy <= 50) {
-                level = '🔵 高精度';
-                levelClass = 'level-good';
-                description = '城市导航级别，误差很小';
-                recommendations = '适合：步行导航、周边搜索、位置分享';
-            } else if (accuracy <= 200) {
-                level = '🟡 中等精度';
-                levelClass = 'level-medium';
-                description = '区域定位级别，一般使用';
-                recommendations = '适合：大致位置确认、区域服务';
-            } else if (accuracy <= 1000) {
-                level = '🟠 低精度';
-                levelClass = 'level-medium';
-                description = '大致区域，需要进一步确认';
-                recommendations = '建议：重新定位或手动输入详细位置';
-                } else {
-                level = '🔴 很低精度';
-                levelClass = 'level-poor';
-                description = '仅供参考，建议重新定位';
-                recommendations = '建议：检查网络连接，开启GPS，重新定位';
-            }
-
-            accuracyDiv.innerHTML = `
-                <h3>🎯 定位精度评估</h3>
-                
-                <div class="info-item">
-                    <div class="info-label">📊 精度等级:</div>
-                    <div class="info-value">
-                        <span class="accuracy-level ${levelClass}">${level}</span>
-                    </div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">📝 精度描述:</div>
-                    <div class="info-value">${description}</div>
-                            </div>
-                
-                <div class="info-item">
-                    <div class="info-label">📏 误差范围:</div>
-                    <div class="info-value">在半径 ${Math.round(accuracy)} 米的圆圈内</div>
-                    </div>
-                    
-                <div class="info-item">
-                    <div class="info-label">💡 使用建议:</div>
-                    <div class="info-value">${recommendations}</div>
-                    </div>
-                
-                ${info.message ? `
-                <div class="info-item">
-                    <div class="info-label">ℹ️ 详细信息:</div>
-                    <div class="info-value">${info.message}</div>
-                </div>
-                ` : ''}
-            `;
-            accuracyDiv.style.display = 'block';
-            accuracyDiv.classList.add('bounce-in');
-        }
-
-                // 简化逆地理编码 - 仅获取最近地址名称
-        async function reverseGeocode(longitude, latitude) {
+        // 获取最近POI
+        async function getNearestPOI(lng, lat) {
             try {
-                // 🔍 坐标参数验证和详细日志
-                if (!longitude || !latitude || 
-                    typeof longitude !== 'number' || typeof latitude !== 'number' ||
-                    latitude < -90 || latitude > 90 || 
-                    longitude < -180 || longitude > 180) {
-                    throw new Error('传入的坐标参数无效');
-                }
-                
-                console.log('🔄 === 逆地理编码详细分析 ===');
-                console.log(`📍 输入坐标: lng=${longitude.toFixed(8)}, lat=${latitude.toFixed(8)}`);
-                console.log(`🎯 坐标系统: GCJ-02 (高德坐标系)`);
-                console.log(`🔍 坐标精度: ${longitude.toString().length} / ${latitude.toString().length} 位`);
-                console.log(`📏 坐标范围检查: 经度[${longitude >= 73 && longitude <= 135 ? '✅合理' : '❌异常'}] 纬度[${latitude >= 3 && latitude <= 54 ? '✅合理' : '❌异常'}]`);
-                
-                showStatus('🔍 正在获取最近地址信息...', 'loading');
-                
-                // 🎯 使用小半径获取最精确的地址
-                const url = `https://restapi.amap.com/v3/geocode/regeo?` +
-                    `location=${longitude},${latitude}&` +
-                    `key=${AMAP_KEY}&` +
-                    `radius=10&` +        // 使用10米小半径获取最精确结果
-                    `extensions=base&` +  // 只返回基础信息，简化响应
-                    `roadlevel=1&` +      // 只返回主干道
-                    `output=json`;
-                
-                console.log(`📡 逆地理编码API请求:`, url);
-                console.log(`⏰ 请求时间: ${new Date().toISOString()}`);
-
+                const url = `https://restapi.amap.com/v3/geocode/regeo?location=${lng},${lat}&key=${AMAP_KEY}&radius=100&extensions=all&output=json`;
                 const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP请求失败: ${response.status} ${response.statusText}`);
-                }
-
                 const data = await response.json();
                 
-                console.log('📦 完整API响应:', JSON.stringify(data, null, 2));
-                
                 if (data.status === '1' && data.regeocode) {
-                    console.log('✅ 逆地理编码成功');
-                    console.log(`🏠 返回地址: ${data.regeocode.formatted_address}`);
-                    console.log(`📊 POI数量: ${(data.regeocode.pois || []).length}`);
-                    console.log(`🛣️ 道路数量: ${(data.regeocode.roads || []).length}`);
+                    const pois = data.regeocode.pois || [];
                     
-                    // 修复：确保正确调用显示函数
-                    try {
-                        showSimpleAddressInfo(data.regeocode, longitude, latitude);
-                        hideStatus();
-                        console.log('✅ 地址信息显示完成');
-                    } catch (displayError) {
-                        console.error('❌ 地址信息显示失败:', displayError);
-                        throw displayError;
+                    if (pois.length > 0) {
+                        // 按距离排序，取最近的
+                        pois.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+                        const nearest = pois[0];
+                        
+                        log(`🎯 找到${pois.length}个POI，最近的是:`);
+                        log(`📍 ${nearest.name} (${nearest.distance}米)`);
+                        
+                        // 输出所有POI信息
+                        log(`📋 全部POI列表:`);
+                        pois.forEach((poi, index) => {
+                            log(`${index + 1}. ${poi.name} - ${poi.distance}米 - ${poi.type}`);
+                        });
+                        
+                        return {
+                            name: nearest.name,
+                            distance: nearest.distance,
+                            type: nearest.type,
+                            allPois: pois
+                        };
+                    } else {
+                        // 如果没有POI，返回格式化地址
+                        const address = data.regeocode.formatted_address;
+                        log(`📍 无POI数据，返回地址: ${address}`);
+                        return {
+                            name: address,
+                            distance: 0,
+                            type: '地址',
+                            allPois: []
+                        };
                     }
-                } else {
-                    console.error('❌ 逆地理编码API返回失败:', data);
-                    throw new Error(data.info || '地址解析失败');
                 }
-                
+                throw new Error('逆地理编码失败');
             } catch (error) {
-                console.error('❌ 逆地理编码完全失败:', error);
-                showStatus(`❌ 地址解析失败: ${error.message}`, 'error');
-                setTimeout(hideStatus, 3000);
+                log(`❌ 获取POI失败: ${error.message}`);
+                return null;
             }
         }
 
-        // 简化显示地址信息 - 仅显示最近地址
-        function showSimpleAddressInfo(regeocode, originalLng, originalLat) {
-            const addressComponent = regeocode.addressComponent;
-            
-            // 🎯 获取最简单的地址描述
-            const simpleAddress = regeocode.formatted_address || '无法获取地址';
-            
-            console.log('🏠 === 地址解析详细分析 ===');
-            console.log(`📍 最终地址: ${simpleAddress}`);
-            console.log(`🏘️ 地址组件:`, addressComponent);
-            console.log(`📊 返回的POI数量: ${(regeocode.pois || []).length}`);
-            console.log(`🛣️ 返回的道路数量: ${(regeocode.roads || []).length}`);
-            
-            // 🔍 分析潜在的坐标转换问题
-            console.log('🔍 === 坐标转换分析 ===');
-            console.log(`📍 发送的坐标: lng=${originalLng.toFixed(8)}, lat=${originalLat.toFixed(8)}`);
-            console.log(`🎯 坐标格式: ${typeof originalLng} / ${typeof originalLat}`);
-            console.log(`📏 坐标精度: 经度${originalLng.toString().split('.')[1]?.length || 0}位 / 纬度${originalLat.toString().split('.')[1]?.length || 0}位小数`);
-            
-            // 检查是否有坐标精度损失
-            if (originalLng.toString().split('.')[1]?.length < 6 || originalLat.toString().split('.')[1]?.length < 6) {
-                console.warn('⚠️ 坐标精度不足！建议至少6位小数以保证米级精度');
-            }
-            
-            let html = `
-                <h3>📍 最近地址信息</h3>
-                
-                <div class="info-item" style="background: linear-gradient(135deg, rgba(24, 144, 255, 0.1), rgba(64, 169, 255, 0.05)); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid rgba(24, 144, 255, 0.2);">
-                    <div class="info-label">🏠 最近地址:</div>
-                    <div class="info-value" style="font-weight: bold; color: #1890ff; font-size: 16px;">${simpleAddress}</div>
-                </div>
-                
+        // 显示结果
+        function showResult(lat, lng, poi) {
+            resultDiv.innerHTML = `
                 <div class="info-item">
-                    <div class="info-label">📏 请求坐标:</div>
-                    <div class="info-value">经度: ${originalLng.toFixed(8)}°, 纬度: ${originalLat.toFixed(8)}°</div>
+                    <span class="label">经度:</span>
+                    <span class="value">${lng.toFixed(8)}</span>
                 </div>
-                
                 <div class="info-item">
-                    <div class="info-label">🎯 坐标系统:</div>
-                    <div class="info-value">GCJ-02 (高德坐标系) - 已转换</div>
+                    <span class="label">纬度:</span>
+                    <span class="value">${lat.toFixed(8)}</span>
                 </div>
-                
-                <!-- 误差分析 -->
-                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 193, 7, 0.1); border-radius: 10px; border-left: 4px solid #ffc107;">
-                    <h4 style="margin: 0 0 15px 0; color: #e6a700; display: flex; align-items: center; gap: 8px;">
-                        🔍 误差分析报告
-                    </h4>
-                    ${generateErrorAnalysis(originalLng, originalLat, regeocode)}
+                <div class="info-item">
+                    <span class="label">最近地址:</span>
+                    <span class="value">${poi ? poi.name : '未知'}</span>
                 </div>
-                
                 <div class="info-item">
-                    <div class="info-label">📍 省份:</div>
-                    <div class="info-value">${addressComponent.province || '无'}</div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">🏙️ 城市:</div>
-                    <div class="info-value">${addressComponent.city || addressComponent.province || '无'}</div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">🏘️ 区县:</div>
-                    <div class="info-value">${addressComponent.district || '无'}</div>
-                    </div>
-                
-                <div class="info-item">
-                    <div class="info-label">🛣️ 街道:</div>
-                    <div class="info-value">${addressComponent.township || '无'}</div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">🏘️ 社区:</div>
-                    <div class="info-value">${addressComponent.neighborhood?.name || '无'}</div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">🏢 建筑:</div>
-                    <div class="info-value">${addressComponent.building?.name || '无'}</div>
+                    <span class="label">距离:</span>
+                    <span class="value">${poi ? poi.distance + '米' : '-'}</span>
                 </div>
             `;
-            
-            // 显示附近道路
-            if (roads.length > 0) {
-                html += `
-                    <div style="margin: 20px 0; padding: 15px; background: rgba(24, 144, 255, 0.05); border-radius: 10px;">
-                        <h4 style="margin: 0 0 10px 0; color: #1890ff;">🛣️ 附近道路 (${bestRadius}米内)</h4>
-                `;
-                roads.slice(0, 3).forEach((road, index) => {
-                    html += `
-                        <div class="info-item" style="border-bottom: ${index === Math.min(roads.length, 3) - 1 ? 'none' : '1px solid rgba(0,0,0,0.05)'};">
-                            <div class="info-label">🛤️ 道路${index + 1}:</div>
-                            <div class="info-value">${road.name} (${road.distance}米)</div>
-                    </div>
-                `;
-                });
-                html += `</div>`;
-            }
-
-            // 显示附近POI (按距离排序，高亮最近的)
-            if (pois.length > 0) {
-                html += `
-                    <div style="margin: 20px 0; padding: 15px; background: rgba(82, 196, 26, 0.05); border-radius: 10px;">
-                        <h4 style="margin: 0 0 10px 0; color: #52c41a;">📍 附近地标 (${bestRadius}米内，按距离排序)</h4>
-                `;
-                pois.slice(0, 5).forEach((poi, index) => {
-                    const icon = getPoiIcon(poi.type);
-                    const isNearest = index === 0;
-                    const itemStyle = isNearest ? 
-                        'background: rgba(24, 144, 255, 0.1); padding: 8px; border-radius: 6px; font-weight: bold;' : 
-                        'border-bottom: ' + (index === Math.min(pois.length, 5) - 1 ? 'none' : '1px solid rgba(0,0,0,0.05)');
-                    
-                    html += `
-                        <div class="info-item" style="${itemStyle}">
-                            <div class="info-label">${icon} ${poi.type}${isNearest ? ' 🎯' : ''}:</div>
-                            <div class="info-value" style="${isNearest ? 'color: #1890ff;' : ''}">${poi.name} (${poi.distance}米)</div>
-                </div>
-            `;
-                });
-                html += `</div>`;
-            }
-
-            addressInfoDiv.innerHTML = html;
-            addressInfoDiv.style.display = 'block';
-            addressInfoDiv.classList.add('bounce-in');
+            resultDiv.style.display = 'block';
         }
 
-        // POI图标映射
-        function getPoiIcon(type) {
-            const iconMap = {
-                '餐饮服务': '🍽️',
-                '购物服务': '🛍️',
-                '住宿服务': '🏨',
-                '生活服务': '🏪',
-                '医疗保健': '🏥',
-                '交通设施': '🚇',
-                '金融保险': '🏦',
-                '教育文化': '🏫',
-                '商务住宅': '🏢',
-                '政府机构': '🏛️',
-                '旅游景点': '🎡',
-                '体育休闲': '⚽',
-                '公司企业': '🏢'
-            };
-            
-            for (const [key, icon] of Object.entries(iconMap)) {
-                if (type.includes(key)) return icon;
-            }
-            return '📍';
-        }
-
-                // 生成误差分析报告
-        function generateErrorAnalysis(lng, lat, regeocode) {
-            let analysisHtml = '';
-            
-            // 坐标精度检查
-            const lngPrecision = lng.toString().split('.')[1]?.length || 0;
-            const latPrecision = lat.toString().split('.')[1]?.length || 0;
-            const minPrecision = Math.min(lngPrecision, latPrecision);
-            
-            analysisHtml += `
-                <div class="info-item" style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 8px; margin-bottom: 10px;">
-                    <div class="info-label">📏 坐标精度检查:</div>
-                    <div class="info-value">
-                        经度${lngPrecision}位小数，纬度${latPrecision}位小数<br>
-                        <small style="color: #666;">
-                            ${minPrecision >= 6 ? '✅ 精度充足（1米级）' : 
-                              minPrecision >= 4 ? '⚠️ 精度一般（10米级）' : 
-                              '❌ 精度不足（>100米级）'}
-                        </small>
-                    </div>
-                </div>
-            `;
-            
-            // 坐标范围检查
-            const inChinaRange = lng >= 73 && lng <= 135 && lat >= 3 && lat <= 54;
-            analysisHtml += `
-                <div class="info-item">
-                    <div class="info-label">🌍 坐标范围验证:</div>
-                    <div class="info-value">
-                        ${inChinaRange ? '✅ 在中国境内，坐标合理' : '❌ 坐标超出中国范围，可能异常'}
-                    </div>
-                </div>
-            `;
-            
-            // 坐标转换分析
-            analysisHtml += `
-                <div class="info-item">
-                    <div class="info-label">🔄 坐标转换链:</div>
-                    <div class="info-value">
-                        高德JS API → WGS-84原始坐标 → 手动转换 → GCJ-02坐标系 → 逆地理编码<br>
-                        <small style="color: #666;">🔧 已启用自动坐标系转换修复功能</small>
-                    </div>
-                </div>
-            `;
-            
-            // API参数分析
-            analysisHtml += `
-                <div class="info-item">
-                    <div class="info-label">⚙️ API参数设置:</div>
-                    <div class="info-value">
-                        搜索半径: 10米（极小范围）<br>
-                        坐标系: GCJ-02（已转换）<br>
-                        返回类型: 基础地址信息
-                    </div>
-                </div>
-            `;
-            
-            // 潜在误差源分析
-            analysisHtml += `
-                <div class="info-item">
-                    <div class="info-label">⚠️ 潜在误差源:</div>
-                    <div class="info-value">
-                        1️⃣ <strong>定位硬件误差</strong>: GPS芯片精度限制（5-50米）<br>
-                        2️⃣ <strong>环境因素误差</strong>: 建筑物遮挡、信号反射（10-100米）<br>
-                        3️⃣ <strong>浏览器限制误差</strong>: 安全机制精度降级（20-200米）<br>
-                        4️⃣ <strong>坐标系转换误差</strong>: WGS84→GCJ02转换（0-10米）<br>
-                        5️⃣ <strong>网络延迟误差</strong>: API响应时间内位置变化（0-5米）
-                    </div>
-                </div>
-            `;
-            
-            // 检查是否有明显的逻辑错误
-            let logicErrors = [];
-            if (minPrecision < 4) {
-                logicErrors.push('坐标精度严重不足');
-            }
-            if (!inChinaRange) {
-                logicErrors.push('坐标超出合理范围');
-            }
-            
-            if (logicErrors.length > 0) {
-                analysisHtml += `
-                    <div class="info-item" style="background: rgba(255, 77, 79, 0.1); padding: 12px; border-radius: 8px;">
-                        <div class="info-label">🚨 发现逻辑错误:</div>
-                        <div class="info-value" style="color: #ff4d4f;">
-                            ${logicErrors.join(', ')}
-                        </div>
-                    </div>
-                `;
-            } else {
-                analysisHtml += `
-                    <div class="info-item" style="background: rgba(82, 196, 26, 0.1); padding: 12px; border-radius: 8px;">
-                        <div class="info-label">✅ 逻辑检查:</div>
-                        <div class="info-value" style="color: #52c41a;">
-                            未发现明显的坐标转换或API使用错误<br>
-                            600米误差主要来源于浏览器定位精度限制
-                        </div>
-                    </div>
-                `;
-            }
-            
-            return analysisHtml;
-        }
-
-        // 获取定位类型描述
-        function getLocationTypeDescription(info) {
-            if (info.isConverted) {
-                return '🎯 高德智能混合定位';
-            }
-            
-            // 根据高德文档的定位类型
-            const typeMap = {
-                'ip': '🌐 IP网络定位',
-                'html5': '📱 HTML5浏览器定位',
-                'gps': '🛰️ GPS卫星定位',
-                'cell': '📡 基站信号定位',
-                'wifi': '📶 WiFi热点定位'
-            };
-            
-            return typeMap[info.type] || '🔄 智能混合定位';
-        }
-
-        // 高德JS API超精准定位主函数
-        async function getCurrentLocation() {
-            // 重置界面
-            coordinatesDiv.style.display = 'none';
-            accuracyDiv.style.display = 'none';
-            addressInfoDiv.style.display = 'none';
-            
+        // 主定位函数
+        async function startLocation() {
             locationBtn.disabled = true;
-            locationBtn.textContent = '🔄 正在修复坐标系转换...';
-            showStatus('🔧 正在启动坐标系转换修复系统...', 'loading');
-
+            locationBtn.textContent = '🔄 定位中...';
+            resultDiv.style.display = 'none';
+            consoleDiv.textContent = '';
+            
+            log('🚀 开始定位...');
+            
             try {
-                // 检查AMap是否已加载
                 if (typeof AMap === 'undefined') {
-                    throw new Error('高德地图API未正确加载，请检查网络连接');
+                    throw new Error('高德API未加载');
                 }
 
-                // 加载定位插件
                 AMap.plugin('AMap.Geolocation', function() {
-                    showStatus('🎯 配置超高精度定位参数...', 'loading');
-                    
-                    // 创建超精准定位实例 - 根据官方文档配置最高精度
                     geolocation = new AMap.Geolocation({
-                        enableHighAccuracy: true,     // 启用高精度定位 - 最重要的参数
-                        timeout: 30000,               // 增加超时时间到30秒，确保有足够时间获取GPS
-                        maximumAge: 0,                // 强制不使用缓存，每次都获取最新位置
-                        convert: true,                // 自动坐标转换为高德坐标系
-                        showButton: false,            // 不显示地图上的定位按钮
-                        showMarker: false,            // 不在地图上显示标记
-                        showCircle: false,            // 不显示精度圆圈
-                        panToLocation: false,         // 不移动地图中心
-                        zoomToAccuracy: false,        // 不调整地图缩放级别
-                        buttonDom: null,              // 不绑定DOM按钮
-                        noIpLocate: false,            // 允许IP定位作为备选方案
-                        noGeoLocation: false,         // 允许浏览器定位
-                        useNative: true,              // 在移动端尽量使用原生定位能力
-                        getCityWhenFail: true,        // 定位失败时返回城市级别信息
-                        needAddress: true,            // 需要获取地址信息
-                        extensions: 'all'             // 返回详细的定位信息
+                        enableHighAccuracy: true,
+                        timeout: 15000,
+                        maximumAge: 0,  // 不使用缓存
+                        convert: true
                     });
 
-                    showStatus('📡 正在连接GPS卫星和定位服务...', 'loading');
-
-                    // 监听定位成功事件
                     geolocation.on('complete', async function(result) {
-                        console.log('🎯 高德定位原始结果:', result);
-                        
                         try {
-                            // 获取位置信息
-                            let latitude = result.position.lat;
-                            let longitude = result.position.lng;
-                            const accuracy = result.accuracy || 50;
-                            const timestamp = Date.now();
+                            let lat = result.position.lat;
+                            let lng = result.position.lng;
                             const isConverted = result.info?.isConverted || false;
                             
-                            console.log('🔍 === 坐标系统详细分析 ===');
-                            console.log(`📍 原始坐标: lng=${longitude.toFixed(8)}, lat=${latitude.toFixed(8)}`);
-                            console.log(`🔧 是否已转换: ${isConverted ? 'YES (GCJ-02)' : 'NO (WGS-84)'}`);
-                            console.log(`📡 定位方式: ${result.info?.type || '未知'}`);
-                            console.log(`⚠️ 转换状态: ${result.message || '无消息'}`);
+                            log(`📍 原始坐标: ${lng.toFixed(8)}, ${lat.toFixed(8)}`);
+                            log(`🔧 坐标系转换: ${isConverted ? 'YES' : 'NO'}`);
                             
-                            // 🚨 关键修复：检查是否需要手动坐标转换
+                            // 如果未转换，手动转换
                             if (!isConverted) {
-                                console.warn('🚨 检测到坐标转换失败，需要手动转换 WGS-84 → GCJ-02');
-                                console.log(`📍 转换前 WGS-84: lng=${longitude.toFixed(8)}, lat=${latitude.toFixed(8)}`);
-                                
-                                showStatus('🔄 正在进行坐标系转换 (WGS-84 → GCJ-02)...', 'loading');
-                                
-                                // 手动坐标转换
-                                const convertedCoords = await convertWGS84ToGCJ02(longitude, latitude);
-                                longitude = convertedCoords.longitude;
-                                latitude = convertedCoords.latitude;
-                                
-                                console.log(`📍 转换后 GCJ-02: lng=${longitude.toFixed(8)}, lat=${latitude.toFixed(8)}`);
-                                console.log(`📏 转换偏移: 经度${(convertedCoords.longitude - result.position.lng).toFixed(6)}°, 纬度${(convertedCoords.latitude - result.position.lat).toFixed(6)}°`);
-                                
-                                // 计算偏移距离（粗略估算）
-                                const offsetDistance = calculateDistance(
-                                    result.position.lat, result.position.lng,
-                                    latitude, longitude
-                                );
-                                console.log(`📐 坐标系偏移距离: ${offsetDistance.toFixed(0)}米`);
-                                
-                                if (offsetDistance > 100) {
-                                    console.warn(`⚠️ 坐标系偏移${offsetDistance.toFixed(0)}米，这解释了您观察到的600米误差！`);
-                                }
-                            } else {
-                                console.log('✅ 坐标已正确转换为GCJ-02系统');
+                                log('🔄 开始坐标系转换...');
+                                const converted = await convertCoords(lng, lat);
+                                lng = converted.longitude;
+                                lat = converted.latitude;
                             }
                             
-                            // 坐标合理性检查
-                            if (!latitude || !longitude || 
-                                latitude < -90 || latitude > 90 || 
-                                longitude < -180 || longitude > 180) {
-                                throw new Error('坐标数据异常');
-                            }
+                            log(`✅ 最终坐标: ${lng.toFixed(8)}, ${lat.toFixed(8)}`);
                             
-                            // 获取定位类型和详细信息
-                            const locationType = getLocationTypeDescription(result.info || {});
-                            const locationInfo = { 
-                                ...result.info, 
-                                isConverted: true, // 标记为已转换
-                                originalCoords: `${result.position.lng.toFixed(6)}, ${result.position.lat.toFixed(6)}`,
-                                convertedCoords: `${longitude.toFixed(6)}, ${latitude.toFixed(6)}`
-                            };
+                            // 获取最近POI
+                            const poi = await getNearestPOI(lng, lat);
                             
-                            showStatus('✅ 定位成功！正在解析位置信息...', 'success');
+                            // 显示结果
+                            showResult(lat, lng, poi);
                             
-                            // 显示坐标信息
-                            showCoordinates(latitude, longitude, accuracy, timestamp, locationType, locationInfo);
-                            
-                            // 显示精度评估
-                            showAccuracyInfo(accuracy, locationInfo);
-                            
-                            // 调用逆地理编码（现在使用正确的GCJ-02坐标）
-                            await reverseGeocode(longitude, latitude);
-                
-                            // 重置按钮
-                            locationBtn.disabled = false;
-                            locationBtn.textContent = '🔧 重新修复坐标转换';
-                            
-                            showStatus('🎉 坐标系转换修复完成！', 'success');
-                            setTimeout(hideStatus, 3000);
+                            log('🎉 定位完成');
                             
                         } catch (error) {
-                            console.error('❌ 定位后处理失败:', error);
-                            showStatus(`❌ 定位后处理失败: ${error.message}`, 'error');
+                            log(`❌ 处理失败: ${error.message}`);
+                        } finally {
                             locationBtn.disabled = false;
-                            locationBtn.textContent = '🔧 重新尝试修复';
+                            locationBtn.textContent = '🚀 重新定位';
                         }
                     });
 
-                    // 监听定位失败事件
                     geolocation.on('error', function(error) {
-                        console.error('高德定位失败:', error);
-                        
-                        let errorMessage = '';
-                        let suggestions = '';
-                        
-                        switch(error.info) {
-                            case 'FAILED':
-                                errorMessage = '定位服务响应失败';
-                                suggestions = '请检查网络连接，稍后重试';
-                                break;
-                            case 'NOT_SUPPORTED':
-                                errorMessage = '浏览器不支持定位功能';
-                                suggestions = '请使用支持定位的现代浏览器';
-                                break;
-                            case 'NOT_PERMITTED':
-                                errorMessage = '用户拒绝了定位权限';
-                                suggestions = '请允许定位权限，然后重新尝试';
-                                break;
-                            case 'POSITION_UNAVAILABLE':
-                                errorMessage = '位置信息不可用';
-                                suggestions = '请确保GPS已开启，在室外重试';
-                                break;
-                            case 'TIMEOUT':
-                                errorMessage = '定位请求超时';
-                                suggestions = '请确保网络稳定，GPS信号良好';
-                                break;
-                            default:
-                                errorMessage = error.message || '未知的定位错误';
-                                suggestions = '请检查设备设置和网络连接';
-                                break;
-                        }
-                        
-                        showStatus(`❌ ${errorMessage}<br><small>💡 ${suggestions}</small>`, 'error');
-                        
-                        // 重置按钮
+                        log(`❌ 定位失败: ${error.message || error.info}`);
                         locationBtn.disabled = false;
-                        locationBtn.textContent = '🔧 重新尝试修复';
+                        locationBtn.textContent = '🚀 重新定位';
                     });
 
-                    showStatus('🎯 开始超精准定位，请允许定位权限...', 'loading');
-                    
-                    // 开始定位
                     geolocation.getCurrentPosition();
                 });
 
             } catch (error) {
-                console.error('定位系统初始化失败:', error);
-                showStatus(`❌ 定位系统初始化失败: ${error.message}`, 'error');
-                
-                // 重置按钮
+                log(`❌ 初始化失败: ${error.message}`);
                 locationBtn.disabled = false;
-                locationBtn.textContent = '🔧 重新尝试修复';
+                locationBtn.textContent = '🚀 重新定位';
             }
         }
 
-                // 多次采样功能 - 已被坐标系转换修复替代
-        async function getMultiSampleLocation() {
-            console.log('🎉 坐标系转换修复已解决主要误差，多次采样功能暂时禁用');
-            showStatus('🎉 坐标系转换修复已解决600米误差，无需多次采样', 'success');
-            setTimeout(hideStatus, 3000);
-        }
-
-        // 绑定按钮点击事件
-        locationBtn.addEventListener('click', getCurrentLocation);
-        multiSampleBtn.addEventListener('click', getMultiSampleLocation);
-        toggleConsoleBtn.addEventListener('click', toggleMobileConsole);
-        clearConsoleBtn.addEventListener('click', clearMobileConsole);
-
-        // 检测浏览器环境
-        function detectBrowserEnvironment() {
-            const userAgent = navigator.userAgent;
-            const browserTipText = document.getElementById('browserTipText');
-            
-            let tip = '';
-            let expectedAccuracy = '';
-            
-            if (/micromessenger/i.test(userAgent)) {
-                tip = '🔥 微信浏览器环境，建议开发微信公众号使用JSSDK定位获得更高精度 (5-30米)';
-                expectedAccuracy = '当前预期精度：50-200米';
-            } else if (/mobile/i.test(userAgent)) {
-                if (/iphone|ipad/i.test(userAgent)) {
-                    tip = '📱 iOS设备，建议开启"精确位置"权限。Safari浏览器定位精度较好';
-                    expectedAccuracy = '当前预期精度：10-100米';
-                } else if (/android/i.test(userAgent)) {
-                    tip = '🤖 Android设备，建议在GPS信号良好的室外使用';
-                    expectedAccuracy = '当前预期精度：15-150米';
-                }
-            } else {
-                tip = '💻 电脑端浏览器，定位精度有限。建议使用手机访问获得更好效果';
-                expectedAccuracy = '当前预期精度：100-1000米';
-            }
-            
-            if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-                tip += ' | ⚠️ 建议使用HTTPS协议访问';
-            }
-            
-            if (browserTipText) {
-                browserTipText.innerHTML = `${tip}<br><small style="color: #666;">${expectedAccuracy}</small>`;
-            }
-        }
-
-        // 页面加载完成后的初始化
+        // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 初始化手机控制台
-            initMobileConsole();
-            
-            // 检测浏览器环境
-            detectBrowserEnvironment();
-            
-            // 检查高德API是否正确加载
             if (typeof AMap === 'undefined') {
-                showStatus('⚠️ 高德地图API加载失败，请检查网络连接', 'error');
+                log('❌ 高德API加载失败');
                 locationBtn.disabled = true;
-                multiSampleBtn.disabled = true;
-                toggleConsoleBtn.disabled = true;
                 locationBtn.textContent = '❌ API加载失败';
-                multiSampleBtn.textContent = '❌ API加载失败';
             } else {
-                console.log('🎉 高德地图API加载成功，坐标系转换修复系统就绪');
-                console.log('📱 手机控制台功能已启用，将实时显示坐标转换过程');
-                
-                // 检查HTTPS
-                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-                    showStatus('⚠️ 为了获得最佳定位精度，建议使用HTTPS协议', 'error');
-                }
+                log('✅ 系统就绪');
             }
         });
     </script>
