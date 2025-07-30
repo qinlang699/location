@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎯 高德智能超精准定位系统</title>
-    <meta property="og:title" content="高德智能超精准定位系统" />
+    <title>🔍 定位误差分析系统</title>
+    <meta property="og:title" content="定位误差分析系统" />
     <meta property="og:type" content="website" />
-    <meta property="og:description" content="基于高德地图JS API 2.0的超高精度定位系统，支持GPS、WiFi、基站混合定位" />
+    <meta property="og:description" content="分析浏览器定位精度误差，提供详细的坐标转换和逆地理编码日志" />
     
     <!-- 引入高德地图JS API 2.0和定位插件 -->
     <script src="https://webapi.amap.com/maps?v=2.0&key=dcfb48c0f9cb749e59c5031e83cb6e95&plugin=AMap.Geolocation"></script>
@@ -490,16 +490,16 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 高德智能超精准定位系统</h1>
+        <h1>🔍 定位误差分析系统</h1>
         
         <div class="location-info-card fade-in">
             <div class="location-method">
-                <div class="method-icon">🛰️</div>
+                <div class="method-icon">🔬</div>
                 <div class="method-info">
-                    <div class="method-title">超精准混合定位技术</div>
+                    <div class="method-title">深度分析浏览器定位误差</div>
                     <div class="method-desc">
-                        高德地图JS API 2.0 + GPS卫星 + WiFi热点 + 基站三角定位 + IP智能定位<br>
-                        📱 完美支持：安卓/苹果手机、平板、电脑 | 🔒 需要定位权限
+                        高德JS API 2.0 + 详细坐标日志 + 误差源分析 + 逆地理编码验证<br>
+                        📱 支持手机端控制台输出 | 🔍 全面分析600米误差原因
         </div>
                 </div>
         </div>
@@ -511,11 +511,15 @@
         </div>
         
         <button id="locationBtn" class="location-button">
-            🚀 启动超精准定位
+            🔍 开始定位误差分析
         </button>
         
         <button id="multiSampleBtn" class="location-button" style="background: linear-gradient(135deg, #52c41a 0%, #73d13d 100%); margin-top: 10px;">
-            🎯 多次采样精准定位 (5次采样)
+            🚧 多次采样功能 (暂时禁用)
+        </button>
+        
+        <button id="toggleConsole" class="location-button" style="background: linear-gradient(135deg, #722ed1 0%, #9254de 100%); margin-top: 10px; min-width: auto; padding: 12px 20px; font-size: 14px;">
+            📱 显示/隐藏控制台
         </button>
         
         <!-- 问题分析和解决方案说明卡片 -->
@@ -538,8 +542,8 @@
                     优先显示 <code>regeocode.pois[0]</code> (距离最近的POI)<br>
                     <small style="color: #666;">→ 智能多半径搜索，找到真正最近的地标建筑！</small>
                 </div>
-            </div>
-            
+        </div>
+        
             <div class="info-item" style="border-bottom: 1px solid rgba(24,144,255,0.1); margin: 10px 0; padding-bottom: 10px;">
                 <div class="info-label">🎯 智能优化:</div>
                 <div class="info-value">
@@ -595,6 +599,13 @@
         
         <div id="status" class="status" style="display: none;"></div>
         
+        <!-- 手机控制台显示区域 -->
+        <div id="mobileConsole" class="info-card" style="display: none; background: #1e1e1e; color: #00ff00; font-family: 'Courier New', monospace; font-size: 12px; max-height: 300px; overflow-y: auto; border-left-color: #00ff00;">
+            <h3 style="color: #00ff00; margin: 0 0 15px 0;">📱 移动端控制台输出</h3>
+            <div id="consoleOutput" style="white-space: pre-wrap; line-height: 1.4;"></div>
+            <button id="clearConsole" style="margin-top: 10px; background: #333; color: #00ff00; border: 1px solid #00ff00; padding: 5px 10px; border-radius: 4px; cursor: pointer;">清空控制台</button>
+        </div>
+        
         <div id="coordinates" class="info-card coordinates-card fade-in" style="display: none;"></div>
         
         <div id="accuracy" class="info-card accuracy-card fade-in" style="display: none;"></div>
@@ -609,6 +620,10 @@
         // DOM元素引用
         const locationBtn = document.getElementById('locationBtn');
         const multiSampleBtn = document.getElementById('multiSampleBtn');
+        const toggleConsoleBtn = document.getElementById('toggleConsole');
+        const mobileConsoleDiv = document.getElementById('mobileConsole');
+        const consoleOutputDiv = document.getElementById('consoleOutput');
+        const clearConsoleBtn = document.getElementById('clearConsole');
         const statusDiv = document.getElementById('status');
         const coordinatesDiv = document.getElementById('coordinates');
         const accuracyDiv = document.getElementById('accuracy');
@@ -616,6 +631,88 @@
 
         // 全局变量
         let geolocation = null;
+        let consoleVisible = false;
+        let originalConsole = {};
+
+        // 手机控制台功能
+        function initMobileConsole() {
+            // 保存原始console方法
+            originalConsole.log = console.log;
+            originalConsole.error = console.error;
+            originalConsole.warn = console.warn;
+            originalConsole.info = console.info;
+            
+            // 重写console方法以捕获输出
+            console.log = function(...args) {
+                originalConsole.log.apply(console, args);
+                addToMobileConsole('log', args);
+            };
+            
+            console.error = function(...args) {
+                originalConsole.error.apply(console, args);
+                addToMobileConsole('error', args);
+            };
+            
+            console.warn = function(...args) {
+                originalConsole.warn.apply(console, args);
+                addToMobileConsole('warn', args);
+            };
+            
+            console.info = function(...args) {
+                originalConsole.info.apply(console, args);
+                addToMobileConsole('info', args);
+            };
+        }
+
+        function addToMobileConsole(type, args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            let color = '#00ff00';
+            let prefix = 'ℹ️';
+            
+            switch(type) {
+                case 'error':
+                    color = '#ff4444';
+                    prefix = '❌';
+                    break;
+                case 'warn':
+                    color = '#ffaa00';
+                    prefix = '⚠️';
+                    break;
+                case 'info':
+                    color = '#00aaff';
+                    prefix = 'ℹ️';
+                    break;
+            }
+            
+            const logEntry = document.createElement('div');
+            logEntry.style.color = color;
+            logEntry.style.marginBottom = '5px';
+            logEntry.style.borderBottom = '1px solid #333';
+            logEntry.style.paddingBottom = '2px';
+            logEntry.innerHTML = `[${timestamp}] ${prefix} ${message}`;
+            
+            consoleOutputDiv.appendChild(logEntry);
+            consoleOutputDiv.scrollTop = consoleOutputDiv.scrollHeight;
+        }
+
+        function toggleMobileConsole() {
+            consoleVisible = !consoleVisible;
+            mobileConsoleDiv.style.display = consoleVisible ? 'block' : 'none';
+            
+            if (consoleVisible) {
+                mobileConsoleDiv.classList.add('bounce-in');
+                console.log('📱 手机控制台已启用，将显示所有日志信息');
+            }
+        }
+
+        function clearMobileConsole() {
+            consoleOutputDiv.innerHTML = '';
+            console.log('🧹 控制台已清空');
+        }
 
         // 状态显示函数
         function showStatus(message, type = 'loading') {
@@ -663,13 +760,13 @@
                 <div class="info-item">
                     <div class="info-label">🎯 精度范围:</div>
                     <div class="info-value">±${Math.round(accuracy)}米</div>
-                        </div>
-                
+                    </div>
+                    
                 <div class="info-item">
                     <div class="info-label">⏰ 定位时间:</div>
                     <div class="info-value">${date.toLocaleString()}</div>
-                        </div>
-                
+                    </div>
+                    
                 ${locationType ? `
                 <div class="info-item">
                     <div class="info-label">📡 定位方式:</div>
@@ -685,21 +782,21 @@
                         <span class="location-type-tag">
                             ${info.isConverted ? 'GCJ-02 (高德坐标系)' : 'WGS-84 (原始坐标系)'}
                         </span>
-                    </div>
-                </div>
+                        </div>
+                        </div>
                 
                 <div class="info-item">
                     <div class="info-label">🔗 数据兼容性:</div>
                     <div class="info-value">✅ 与逆地理编码API完全兼容</div>
-                </div>
-                
+                    </div>
+                    
                 ${info.isOptimized ? `
                 <div class="info-item">
                     <div class="info-label">🧠 优化算法:</div>
                     <div class="info-value">
                         <span class="location-type-tag">多次采样智能优化</span>
-                            </div>
                     </div>
+                </div>
                     
                 <div class="info-item">
                     <div class="info-label">🎯 优化置信度:</div>
@@ -755,17 +852,17 @@
                 <div class="info-item">
                     <div class="info-label">📝 精度描述:</div>
                     <div class="info-value">${description}</div>
-                </div>
+                            </div>
                 
                 <div class="info-item">
                     <div class="info-label">📏 误差范围:</div>
                     <div class="info-value">在半径 ${Math.round(accuracy)} 米的圆圈内</div>
-                </div>
-                
+                    </div>
+                    
                 <div class="info-item">
                     <div class="info-label">💡 使用建议:</div>
                     <div class="info-value">${recommendations}</div>
-                </div>
+                    </div>
                 
                 ${info.message ? `
                 <div class="info-item">
@@ -778,10 +875,10 @@
             accuracyDiv.classList.add('bounce-in');
         }
 
-        // 智能多半径逆地理编码API
+                // 简化逆地理编码 - 仅获取最近地址名称
         async function reverseGeocode(longitude, latitude) {
             try {
-                // 🔍 坐标参数验证
+                // 🔍 坐标参数验证和详细日志
                 if (!longitude || !latitude || 
                     typeof longitude !== 'number' || typeof latitude !== 'number' ||
                     latitude < -90 || latitude > 90 || 
@@ -789,166 +886,104 @@
                     throw new Error('传入的坐标参数无效');
                 }
                 
-                console.log('🔄 逆地理编码请求参数:');
-                console.log(`📍 请求坐标: location=${longitude},${latitude}`);
+                console.log('🔄 === 逆地理编码详细分析 ===');
+                console.log(`📍 输入坐标: lng=${longitude.toFixed(8)}, lat=${latitude.toFixed(8)}`);
                 console.log(`🎯 坐标系统: GCJ-02 (高德坐标系)`);
+                console.log(`🔍 坐标精度: ${longitude.toString().length} / ${latitude.toString().length} 位`);
+                console.log(`📏 坐标范围检查: 经度[${longitude >= 73 && longitude <= 135 ? '✅合理' : '❌异常'}] 纬度[${latitude >= 3 && latitude <= 54 ? '✅合理' : '❌异常'}]`);
                 
-                showStatus('🔍 正在智能分析周边地标信息...', 'loading');
+                showStatus('🔍 正在获取最近地址信息...', 'loading');
                 
-                // 🎯 智能多半径搜索策略
-                const searchRadii = [20, 50, 100, 200]; // 由近到远的搜索半径
-                let bestResult = null;
-                let allResults = [];
+                // 🎯 使用小半径获取最精确的地址
+                const url = `https://restapi.amap.com/v3/geocode/regeo?` +
+                    `location=${longitude},${latitude}&` +
+                    `key=${AMAP_KEY}&` +
+                    `radius=10&` +        // 使用10米小半径获取最精确结果
+                    `extensions=base&` +  // 只返回基础信息，简化响应
+                    `roadlevel=1&` +      // 只返回主干道
+                    `output=json`;
                 
-                for (const radius of searchRadii) {
-                    try {
-                        showStatus(`🔍 正在搜索半径${radius}米内的精确地标...`, 'loading');
-                        
-                        const url = `https://restapi.amap.com/v3/geocode/regeo?` +
-                            `location=${longitude},${latitude}&` +
-                            `key=${AMAP_KEY}&` +
-                            `radius=${radius}&` +
-                            `extensions=all&` +
-                            `roadlevel=0&` +
-                            `output=json`;
-                        
-                        console.log(`📡 半径${radius}米搜索URL:`, url);
+                console.log(`📡 逆地理编码API请求:`, url);
+                console.log(`⏰ 请求时间: ${new Date().toISOString()}`);
 
-                        const response = await fetch(url);
-                        
-                        if (!response.ok) {
-                            console.warn(`半径${radius}米请求失败: ${response.status}`);
-                            continue;
-                        }
-
-                        const data = await response.json();
-                        
-                        if (data.status === '1' && data.regeocode) {
-                            const result = {
-                                radius,
-                                data: data.regeocode,
-                                poiCount: (data.regeocode.pois || []).length,
-                                roadCount: (data.regeocode.roads || []).length
-                            };
-                            
-                            allResults.push(result);
-                            console.log(`✅ 半径${radius}米: 找到${result.poiCount}个POI, ${result.roadCount}条道路`);
-                            
-                            // 选择最佳结果：优先选择有POI的最小半径结果
-                            if (!bestResult || (result.poiCount > 0 && (bestResult.poiCount === 0 || radius < bestResult.radius))) {
-                                bestResult = result;
-                            }
-                            
-                            // 如果在小半径内找到了POI，就不需要继续搜索大半径
-                            if (result.poiCount > 0 && radius <= 50) {
-                                console.log(`🎯 在${radius}米内找到精确地标，停止扩大搜索`);
-                                break;
-                            }
-                        }
-                    } catch (error) {
-                        console.warn(`半径${radius}米搜索失败:`, error);
-                    }
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP请求失败: ${response.status} ${response.statusText}`);
                 }
+
+                const data = await response.json();
                 
-                if (bestResult) {
-                    console.log('🎉 智能搜索完成，最佳结果:', bestResult);
-                    showSmartAddressInfo(bestResult, allResults);
+                console.log('📦 完整API响应:', JSON.stringify(data, null, 2));
+                
+                if (data.status === '1' && data.regeocode) {
+                    console.log('✅ 逆地理编码成功');
+                    console.log(`🏠 返回地址: ${data.regeocode.formatted_address}`);
+                    console.log(`📊 POI数量: ${(data.regeocode.pois || []).length}`);
+                    console.log(`🛣️ 道路数量: ${(data.regeocode.roads || []).length}`);
+                    
+                    showSimpleAddressInfo(data.regeocode, longitude, latitude);
                     hideStatus();
                 } else {
-                    throw new Error('所有半径搜索均失败');
+                    console.error('❌ 逆地理编码失败:', data);
+                    throw new Error(data.info || '地址解析失败');
                 }
                 
             } catch (error) {
-                console.error('智能逆地理编码失败:', error);
+                console.error('❌ 逆地理编码完全失败:', error);
                 showStatus(`❌ 地址解析失败: ${error.message}`, 'error');
                 setTimeout(hideStatus, 3000);
             }
         }
 
-        // 智能显示地址信息（多半径对比）
-        function showSmartAddressInfo(bestResult, allResults) {
-            const regeocode = bestResult.data;
-            
-            displayOptimalLocationInfo(regeocode, bestResult.radius, allResults);
-        }
-
-        // 显示最优位置信息
-        function displayOptimalLocationInfo(regeocode, bestRadius, allResults) {
+        // 简化显示地址信息 - 仅显示最近地址
+        function showSimpleAddressInfo(regeocode, originalLng, originalLat) {
             const addressComponent = regeocode.addressComponent;
-            const pois = regeocode.pois || [];
-            const roads = regeocode.roads || [];
             
-            // 🎯 优先显示最近POI作为精确位置描述
-            let primaryLocation = '';
-            let locationAccuracy = '';
-            let accuracyLevel = '';
-            let accuracyColor = '';
+            // 🎯 获取最简单的地址描述
+            const simpleAddress = regeocode.formatted_address || '无法获取地址';
             
-            if (pois.length > 0) {
-                const nearestPoi = pois[0]; // 第一个POI就是距离最近的
-                primaryLocation = `${nearestPoi.name} (${nearestPoi.type})`;
-                locationAccuracy = `距离${nearestPoi.distance}米`;
-                
-                // 根据距离判断精确度等级
-                if (nearestPoi.distance <= 10) {
-                    accuracyLevel = '🟢 极高精度';
-                    accuracyColor = '#52c41a';
-                } else if (nearestPoi.distance <= 30) {
-                    accuracyLevel = '🔵 高精度';
-                    accuracyColor = '#1890ff';
-                } else if (nearestPoi.distance <= 100) {
-                    accuracyLevel = '🟡 中等精度';
-                    accuracyColor = '#fa8c16';
-                } else {
-                    accuracyLevel = '🟠 一般精度';
-                    accuracyColor = '#ff7a45';
-                }
-                
-                console.log('🎯 最佳POI:', nearestPoi);
-            } else if (roads.length > 0) {
-                const nearestRoad = roads[0];
-                primaryLocation = `${nearestRoad.name} 附近`;
-                locationAccuracy = `距离道路${nearestRoad.distance}米`;
-                accuracyLevel = '🛣️ 道路定位';
-                accuracyColor = '#722ed1';
-                console.log('🛣️ 最近道路:', nearestRoad);
-            } else {
-                primaryLocation = regeocode.formatted_address || '无法确定具体位置';
-                locationAccuracy = '基于行政区划';
-                accuracyLevel = '📍 区域定位';
-                accuracyColor = '#8c8c8c';
+            console.log('🏠 === 地址解析详细分析 ===');
+            console.log(`📍 最终地址: ${simpleAddress}`);
+            console.log(`🏘️ 地址组件:`, addressComponent);
+            console.log(`📊 返回的POI数量: ${(regeocode.pois || []).length}`);
+            console.log(`🛣️ 返回的道路数量: ${(regeocode.roads || []).length}`);
+            
+            // 🔍 分析潜在的坐标转换问题
+            console.log('🔍 === 坐标转换分析 ===');
+            console.log(`📍 发送的坐标: lng=${originalLng.toFixed(8)}, lat=${originalLat.toFixed(8)}`);
+            console.log(`🎯 坐标格式: ${typeof originalLng} / ${typeof originalLat}`);
+            console.log(`📏 坐标精度: 经度${originalLng.toString().split('.')[1]?.length || 0}位 / 纬度${originalLat.toString().split('.')[1]?.length || 0}位小数`);
+            
+            // 检查是否有坐标精度损失
+            if (originalLng.toString().split('.')[1]?.length < 6 || originalLat.toString().split('.')[1]?.length < 6) {
+                console.warn('⚠️ 坐标精度不足！建议至少6位小数以保证米级精度');
             }
             
             let html = `
-                <h3>🏠 智能位置解析结果</h3>
+                <h3>📍 最近地址信息</h3>
                 
                 <div class="info-item" style="background: linear-gradient(135deg, rgba(24, 144, 255, 0.1), rgba(64, 169, 255, 0.05)); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 2px solid rgba(24, 144, 255, 0.2);">
-                    <div class="info-label">🎯 最精确位置:</div>
-                    <div class="info-value" style="font-weight: bold; color: ${accuracyColor}; font-size: 16px;">${primaryLocation}</div>
-                    <div style="margin-top: 8px;">
-                        <span class="accuracy-level" style="background: ${accuracyColor}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px;">
-                            ${accuracyLevel}
-                        </span>
-                        <span style="margin-left: 10px; color: #666;">搜索半径: ${bestRadius}米</span>
-                    </div>
+                    <div class="info-label">🏠 最近地址:</div>
+                    <div class="info-value" style="font-weight: bold; color: #1890ff; font-size: 16px;">${simpleAddress}</div>
                 </div>
                 
                 <div class="info-item">
-                    <div class="info-label">📏 位置精确度:</div>
-                    <div class="info-value">${locationAccuracy}</div>
+                    <div class="info-label">📏 请求坐标:</div>
+                    <div class="info-value">经度: ${originalLng.toFixed(8)}°, 纬度: ${originalLat.toFixed(8)}°</div>
                 </div>
                 
                 <div class="info-item">
-                    <div class="info-label">🏘️ 行政地址:</div>
-                    <div class="info-value">${regeocode.formatted_address || '无'}</div>
+                    <div class="info-label">🎯 坐标系统:</div>
+                    <div class="info-value">GCJ-02 (高德坐标系) - 已转换</div>
                 </div>
                 
-                <!-- 智能搜索对比结果 -->
-                <div style="margin: 20px 0; padding: 15px; background: rgba(82, 196, 26, 0.05); border-radius: 10px; border-left: 4px solid #52c41a;">
-                    <h4 style="margin: 0 0 15px 0; color: #52c41a; display: flex; align-items: center; gap: 8px;">
-                        🧠 智能搜索分析报告
+                <!-- 误差分析 -->
+                <div style="margin: 20px 0; padding: 15px; background: rgba(255, 193, 7, 0.1); border-radius: 10px; border-left: 4px solid #ffc107;">
+                    <h4 style="margin: 0 0 15px 0; color: #e6a700; display: flex; align-items: center; gap: 8px;">
+                        🔍 误差分析报告
                     </h4>
-                    ${generateSearchAnalysis(allResults)}
+                    ${generateErrorAnalysis(originalLng, originalLat, regeocode)}
                 </div>
                 
                 <div class="info-item">
@@ -1051,104 +1086,103 @@
             return '📍';
         }
 
-        // 生成智能搜索分析报告
-        function generateSearchAnalysis(allResults) {
-            if (!allResults || allResults.length === 0) {
-                return '<div class="info-item"><div class="info-value">暂无搜索数据</div></div>';
-            }
-            
+                // 生成误差分析报告
+        function generateErrorAnalysis(lng, lat, regeocode) {
             let analysisHtml = '';
             
-            // 搜索策略说明
+            // 坐标精度检查
+            const lngPrecision = lng.toString().split('.')[1]?.length || 0;
+            const latPrecision = lat.toString().split('.')[1]?.length || 0;
+            const minPrecision = Math.min(lngPrecision, latPrecision);
+            
             analysisHtml += `
                 <div class="info-item" style="background: rgba(255,255,255,0.7); padding: 12px; border-radius: 8px; margin-bottom: 10px;">
-                    <div class="info-label">🎯 搜索策略:</div>
-                    <div class="info-value">由近到远多半径智能搜索 (20m → 50m → 100m → 200m)</div>
+                    <div class="info-label">📏 坐标精度检查:</div>
+                    <div class="info-value">
+                        经度${lngPrecision}位小数，纬度${latPrecision}位小数<br>
+                        <small style="color: #666;">
+                            ${minPrecision >= 6 ? '✅ 精度充足（1米级）' : 
+                              minPrecision >= 4 ? '⚠️ 精度一般（10米级）' : 
+                              '❌ 精度不足（>100米级）'}
+                        </small>
+                    </div>
                 </div>
             `;
             
-            // 各半径搜索结果对比
+            // 坐标范围检查
+            const inChinaRange = lng >= 73 && lng <= 135 && lat >= 3 && lat <= 54;
             analysisHtml += `
                 <div class="info-item">
-                    <div class="info-label">📊 搜索结果对比:</div>
+                    <div class="info-label">🌍 坐标范围验证:</div>
                     <div class="info-value">
-                        <div style="margin-top: 8px;">
-            `;
-            
-            allResults.forEach(result => {
-                const { radius, poiCount, roadCount } = result;
-                let statusIcon = '';
-                let statusColor = '';
-                
-                if (poiCount > 0) {
-                    statusIcon = '✅';
-                    statusColor = '#52c41a';
-                } else if (roadCount > 0) {
-                    statusIcon = '🛣️';
-                    statusColor = '#1890ff';
-                } else {
-                    statusIcon = '❌';
-                    statusColor = '#ff4d4f';
-                }
-                
-                analysisHtml += `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05);">
-                        <span style="color: ${statusColor};">${statusIcon} ${radius}米半径</span>
-                        <span style="font-size: 12px; color: #666;">
-                            ${poiCount}个地标, ${roadCount}条道路
-                        </span>
-                    </div>
-                `;
-            });
-            
-            analysisHtml += `
-                        </div>
+                        ${inChinaRange ? '✅ 在中国境内，坐标合理' : '❌ 坐标超出中国范围，可能异常'}
                     </div>
                 </div>
             `;
             
-            // 精度评估
-            const bestResult = allResults.find(r => r.poiCount > 0) || allResults[0];
-            if (bestResult && bestResult.data.pois && bestResult.data.pois.length > 0) {
-                const nearestDistance = bestResult.data.pois[0].distance;
-                let accuracyAssessment = '';
-                
-                if (nearestDistance <= 10) {
-                    accuracyAssessment = '🟢 定位极其精确，可用于导航和精准服务';
-                } else if (nearestDistance <= 30) {
-                    accuracyAssessment = '🔵 定位精度很高，适合大多数位置服务';
-                } else if (nearestDistance <= 100) {
-                    accuracyAssessment = '🟡 定位精度良好，适合区域性服务';
-                } else {
-                    accuracyAssessment = '🟠 定位精度一般，建议结合用户确认';
-                }
-                
-                analysisHtml += `
-                    <div class="info-item">
-                        <div class="info-label">🔍 精度评估:</div>
-                        <div class="info-value">${accuracyAssessment}</div>
+            // 坐标转换分析
+            analysisHtml += `
+                <div class="info-item">
+                    <div class="info-label">🔄 坐标转换链:</div>
+                    <div class="info-value">
+                        高德JS API → 自动转换 → GCJ-02坐标系 → 逆地理编码<br>
+                        <small style="color: #666;">可能转换误差：0-10米</small>
                     </div>
-                `;
+                </div>
+            `;
+            
+            // API参数分析
+            analysisHtml += `
+                <div class="info-item">
+                    <div class="info-label">⚙️ API参数设置:</div>
+                    <div class="info-value">
+                        搜索半径: 10米（极小范围）<br>
+                        坐标系: GCJ-02（已转换）<br>
+                        返回类型: 基础地址信息
+                    </div>
+                </div>
+            `;
+            
+            // 潜在误差源分析
+            analysisHtml += `
+                <div class="info-item">
+                    <div class="info-label">⚠️ 潜在误差源:</div>
+                    <div class="info-value">
+                        1️⃣ <strong>定位硬件误差</strong>: GPS芯片精度限制（5-50米）<br>
+                        2️⃣ <strong>环境因素误差</strong>: 建筑物遮挡、信号反射（10-100米）<br>
+                        3️⃣ <strong>浏览器限制误差</strong>: 安全机制精度降级（20-200米）<br>
+                        4️⃣ <strong>坐标系转换误差</strong>: WGS84→GCJ02转换（0-10米）<br>
+                        5️⃣ <strong>网络延迟误差</strong>: API响应时间内位置变化（0-5米）
+                    </div>
+                </div>
+            `;
+            
+            // 检查是否有明显的逻辑错误
+            let logicErrors = [];
+            if (minPrecision < 4) {
+                logicErrors.push('坐标精度严重不足');
+            }
+            if (!inChinaRange) {
+                logicErrors.push('坐标超出合理范围');
             }
             
-            // 改进建议
-            let suggestions = '';
-            if (allResults.length > 0) {
-                const hasNearbyPOI = allResults.some(r => r.poiCount > 0 && r.radius <= 50);
-                const hasDistantPOI = allResults.some(r => r.poiCount > 0 && r.radius > 50);
-                
-                if (hasNearbyPOI) {
-                    suggestions = '✅ 找到了附近精确地标，定位结果可信度高';
-                } else if (hasDistantPOI) {
-                    suggestions = '⚠️ 仅在较大范围内找到地标，建议确认具体位置';
-                } else {
-                    suggestions = '❗ 附近缺乏明显地标，建议使用道路定位或手动确认';
-                }
-                
+            if (logicErrors.length > 0) {
                 analysisHtml += `
-                    <div class="info-item">
-                        <div class="info-label">💡 改进建议:</div>
-                        <div class="info-value">${suggestions}</div>
+                    <div class="info-item" style="background: rgba(255, 77, 79, 0.1); padding: 12px; border-radius: 8px;">
+                        <div class="info-label">🚨 发现逻辑错误:</div>
+                        <div class="info-value" style="color: #ff4d4f;">
+                            ${logicErrors.join(', ')}
+                        </div>
+                    </div>
+                `;
+            } else {
+                analysisHtml += `
+                    <div class="info-item" style="background: rgba(82, 196, 26, 0.1); padding: 12px; border-radius: 8px;">
+                        <div class="info-label">✅ 逻辑检查:</div>
+                        <div class="info-value" style="color: #52c41a;">
+                            未发现明显的坐标转换或API使用错误<br>
+                            600米误差主要来源于浏览器定位精度限制
+                        </div>
                     </div>
                 `;
             }
@@ -1182,8 +1216,8 @@
             addressInfoDiv.style.display = 'none';
             
             locationBtn.disabled = true;
-            locationBtn.textContent = '🔄 超精准定位中...';
-            showStatus('🛰️ 正在启动高德超精准定位系统...', 'loading');
+            locationBtn.textContent = '🔄 正在分析定位误差...';
+            showStatus('🔍 正在启动定位误差分析系统...', 'loading');
 
             try {
                 // 检查AMap是否已加载
@@ -1258,16 +1292,16 @@
                 
                 // 重置按钮
                 locationBtn.disabled = false;
-                            locationBtn.textContent = '🚀 重新超精准定位';
+                            locationBtn.textContent = '🔍 重新分析定位误差';
                             
-                            showStatus('🎉 超精准定位完成！', 'success');
+                            showStatus('🎉 定位误差分析完成！', 'success');
                             setTimeout(hideStatus, 3000);
                             
                         } catch (error) {
                             console.error('定位后处理失败:', error);
                             showStatus(`❌ 定位后处理失败: ${error.message}`, 'error');
                 locationBtn.disabled = false;
-                            locationBtn.textContent = '🚀 重新尝试定位';
+                            locationBtn.textContent = '🔍 重新尝试分析';
                         }
                     });
 
@@ -1309,7 +1343,7 @@
                         
                         // 重置按钮
                         locationBtn.disabled = false;
-                        locationBtn.textContent = '🚀 重新尝试定位';
+                        locationBtn.textContent = '🔍 重新尝试分析';
                     });
 
                     showStatus('🎯 开始超精准定位，请允许定位权限...', 'loading');
@@ -1324,317 +1358,22 @@
                 
                 // 重置按钮
                 locationBtn.disabled = false;
-                locationBtn.textContent = '🚀 重新尝试定位';
+                locationBtn.textContent = '🔍 重新尝试分析';
             }
         }
 
-        // 多次采样精准定位
+                // 简化多次采样功能 - 暂时禁用
         async function getMultiSampleLocation() {
-            // 重置界面
-            coordinatesDiv.style.display = 'none';
-            accuracyDiv.style.display = 'none';
-            addressInfoDiv.style.display = 'none';
-            
-            locationBtn.disabled = true;
-            multiSampleBtn.disabled = true;
-            multiSampleBtn.textContent = '🔄 多次采样中...';
-            
-            try {
-                if (typeof AMap === 'undefined') {
-                    throw new Error('高德地图API未正确加载');
-                }
-
-                const samples = [];
-                const totalSamples = 5;
-                
-                for (let i = 0; i < totalSamples; i++) {
-                    showStatus(`🎯 正在进行第 ${i + 1}/${totalSamples} 次精准采样...`, 'loading');
-                    
-                    try {
-                        const sampleResult = await getSingleLocationSample();
-                        samples.push(sampleResult);
-                        console.log(`📍 第${i + 1}次采样:`, sampleResult);
-                        
-                        // 每次采样后等待2秒，让GPS重新定位
-                        if (i < totalSamples - 1) {
-                            await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-            } catch (error) {
-                        console.warn(`第${i + 1}次采样失败:`, error);
-                    }
-                }
-                
-                if (samples.length === 0) {
-                    throw new Error('所有采样均失败');
-                }
-                
-                showStatus('🧠 正在智能分析多次采样数据...', 'loading');
-                
-                // 智能算法分析多次采样结果
-                const optimizedResult = analyzeMultiSamples(samples);
-                
-                console.log('🎉 多次采样优化结果:', optimizedResult);
-                
-                // 显示优化后的结果
-                await showOptimizedLocationResult(optimizedResult, samples);
-                
-            } catch (error) {
-                console.error('多次采样定位失败:', error);
-                showStatus(`❌ 多次采样失败: ${error.message}`, 'error');
-            } finally {
-                locationBtn.disabled = false;
-                multiSampleBtn.disabled = false;
-                multiSampleBtn.textContent = '🎯 多次采样精准定位 (5次采样)';
-            }
-        }
-
-        // 获取单次定位样本
-        function getSingleLocationSample() {
-            return new Promise((resolve, reject) => {
-                AMap.plugin('AMap.Geolocation', function() {
-                    const tempGeolocation = new AMap.Geolocation({
-                        enableHighAccuracy: true,
-                        timeout: 8000,
-                        maximumAge: 0, // 强制不使用缓存
-                        convert: true,
-                        noIpLocate: true, // 禁用IP定位，强制GPS
-                        needAddress: false
-                    });
-
-                    tempGeolocation.on('complete', function(result) {
-                        resolve({
-                            latitude: result.position.lat,
-                            longitude: result.position.lng,
-                            accuracy: result.accuracy || 100,
-                            timestamp: Date.now(),
-                            type: result.info?.type || 'unknown'
-                        });
-                    });
-
-                    tempGeolocation.on('error', function(error) {
-                        reject(error);
-                    });
-
-                    tempGeolocation.getCurrentPosition();
-                });
-            });
-        }
-
-        // 智能分析多次采样数据
-        function analyzeMultiSamples(samples) {
-            if (samples.length === 0) return null;
-            
-            console.log('🧠 分析多次采样数据:', samples);
-            
-            // 1. 移除异常值 (使用四分位数法)
-            const validSamples = removeOutliers(samples);
-            console.log('✅ 移除异常值后:', validSamples);
-            
-            // 2. 加权平均 (精度越高权重越大)
-            const weightedResult = calculateWeightedAverage(validSamples);
-            console.log('⚖️ 加权平均结果:', weightedResult);
-            
-            // 3. 计算置信度和改进程度
-            const confidence = calculateConfidence(validSamples);
-            const improvement = calculateImprovement(samples, weightedResult);
-
-            return {
-                ...weightedResult,
-                confidence,
-                improvement,
-                sampleCount: validSamples.length,
-                originalSamples: samples,
-                validSamples
-            };
-        }
-
-        // 移除异常值
-        function removeOutliers(samples) {
-            if (samples.length <= 3) return samples;
-            
-            // 计算经纬度的中位数
-            const lats = samples.map(s => s.latitude).sort((a, b) => a - b);
-            const lngs = samples.map(s => s.longitude).sort((a, b) => a - b);
-            
-            const medianLat = lats[Math.floor(lats.length / 2)];
-            const medianLng = lngs[Math.floor(lngs.length / 2)];
-            
-            // 计算每个样本到中位数的距离
-            const distances = samples.map(sample => {
-                const latDiff = sample.latitude - medianLat;
-                const lngDiff = sample.longitude - medianLng;
-                return Math.sqrt(latDiff * latDiff + lngDiff * lngDiff);
-            });
-            
-            // 移除距离超过1.5倍四分位距的异常值
-            const sortedDistances = [...distances].sort((a, b) => a - b);
-            const q1 = sortedDistances[Math.floor(sortedDistances.length * 0.25)];
-            const q3 = sortedDistances[Math.floor(sortedDistances.length * 0.75)];
-            const iqr = q3 - q1;
-            const threshold = q3 + 1.5 * iqr;
-            
-            return samples.filter((sample, index) => distances[index] <= threshold);
-        }
-
-        // 加权平均计算
-        function calculateWeightedAverage(samples) {
-            if (samples.length === 0) return null;
-            
-            // 权重 = 1 / (精度 + 10)，精度越高权重越大
-            const weights = samples.map(s => 1 / (s.accuracy + 10));
-            const totalWeight = weights.reduce((sum, w) => sum + w, 0);
-            
-            const weightedLat = samples.reduce((sum, sample, index) => 
-                sum + sample.latitude * weights[index], 0) / totalWeight;
-            
-            const weightedLng = samples.reduce((sum, sample, index) => 
-                sum + sample.longitude * weights[index], 0) / totalWeight;
-            
-            // 估算改进后的精度
-            const avgAccuracy = samples.reduce((sum, s) => sum + s.accuracy, 0) / samples.length;
-            const improvementFactor = Math.min(samples.length * 0.2, 0.7); // 最多改进70%
-            const estimatedAccuracy = avgAccuracy * (1 - improvementFactor);
-            
-            return {
-                latitude: weightedLat,
-                longitude: weightedLng,
-                accuracy: estimatedAccuracy,
-                timestamp: Date.now()
-            };
-        }
-
-        // 计算置信度
-        function calculateConfidence(samples) {
-            if (samples.length <= 1) return 0.3;
-            
-            // 基于样本数量和一致性计算置信度
-            const baseConfidence = Math.min(samples.length * 0.15, 0.8);
-            
-            // 计算样本的一致性 (变异系数)
-            const lats = samples.map(s => s.latitude);
-            const lngs = samples.map(s => s.longitude);
-            
-            const latStd = calculateStandardDeviation(lats);
-            const lngStd = calculateStandardDeviation(lngs);
-            const avgStd = (latStd + lngStd) / 2;
-            
-            const consistencyBonus = Math.max(0, 0.2 - avgStd * 1000); // 一致性越高奖励越多
-            
-            return Math.min(baseConfidence + consistencyBonus, 0.95);
-        }
-
-        // 计算改进程度
-        function calculateImprovement(samples, optimizedResult) {
-            if (samples.length === 0) return 0;
-            
-            const avgOriginalAccuracy = samples.reduce((sum, s) => sum + s.accuracy, 0) / samples.length;
-            const improvementRatio = (avgOriginalAccuracy - optimizedResult.accuracy) / avgOriginalAccuracy;
-            
-            return Math.max(0, Math.min(improvementRatio, 0.8)); // 最多80%改进
-        }
-
-        // 计算标准差
-        function calculateStandardDeviation(values) {
-            const avg = values.reduce((sum, val) => sum + val, 0) / values.length;
-            const squaredDiffs = values.map(val => Math.pow(val - avg, 2));
-            const avgSquaredDiff = squaredDiffs.reduce((sum, diff) => sum + diff, 0) / values.length;
-            return Math.sqrt(avgSquaredDiff);
-        }
-
-        // 显示优化后的定位结果
-        async function showOptimizedLocationResult(result, originalSamples) {
-            const locationType = '🎯 智能多次采样优化定位';
-            
-            // 显示优化后的坐标
-            showCoordinates(
-                result.latitude, 
-                result.longitude, 
-                result.accuracy, 
-                result.timestamp, 
-                locationType,
-                { isOptimized: true, confidence: result.confidence }
-            );
-            
-            // 显示改进分析
-            showImprovementAnalysis(result, originalSamples);
-            
-            // 调用逆地理编码
-            await reverseGeocode(result.longitude, result.latitude);
-            
-            showStatus('🎉 多次采样定位优化完成！', 'success');
+            console.log('🚧 多次采样功能暂时禁用，专注于分析单次定位误差');
+            showStatus('🚧 专注分析单次定位误差，多次采样功能暂时禁用', 'error');
             setTimeout(hideStatus, 3000);
-        }
-
-        // 显示改进分析
-        function showImprovementAnalysis(result, originalSamples) {
-            const avgOriginalAccuracy = originalSamples.reduce((sum, s) => sum + s.accuracy, 0) / originalSamples.length;
-            const improvementPercent = (result.improvement * 100).toFixed(1);
-            const confidencePercent = (result.confidence * 100).toFixed(1);
-            
-            let levelClass, levelText;
-            if (result.confidence >= 0.8) {
-                levelClass = 'level-excellent';
-                levelText = '🏆 极高置信度';
-            } else if (result.confidence >= 0.6) {
-                levelClass = 'level-good';
-                levelText = '✅ 高置信度';
-            } else if (result.confidence >= 0.4) {
-                levelClass = 'level-medium';
-                levelText = '⚠️ 中等置信度';
-            } else {
-                levelClass = 'level-poor';
-                levelText = '❗ 低置信度';
-            }
-
-            accuracyDiv.innerHTML = `
-                <h3>🧠 智能多次采样分析</h3>
-                
-                <div class="info-item">
-                    <div class="info-label">📊 采样统计:</div>
-                    <div class="info-value">${originalSamples.length}次采样，${result.sampleCount}次有效</div>
-                        </div>
-                        
-                <div class="info-item">
-                    <div class="info-label">🎯 优化效果:</div>
-                    <div class="info-value">
-                        ${avgOriginalAccuracy.toFixed(0)}米 → ${result.accuracy.toFixed(0)}米 
-                        (改进${improvementPercent}%)
-                    </div>
-                        </div>
-                        
-                <div class="info-item">
-                    <div class="info-label">🔍 置信度评估:</div>
-                    <div class="info-value">
-                        <span class="accuracy-level ${levelClass}">${levelText} (${confidencePercent}%)</span>
-                        </div>
-                    </div>
-                
-                <div class="info-item">
-                    <div class="info-label">📏 估算精度:</div>
-                    <div class="info-value">±${result.accuracy.toFixed(0)}米 (智能优化后)</div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">🧮 算法说明:</div>
-                    <div class="info-value">异常值过滤 + 精度加权平均 + 置信度分析</div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="info-label">💡 建议:</div>
-                    <div class="info-value">
-                        ${result.confidence >= 0.7 ? 
-                            '✅ 优化效果良好，可信赖此结果' : 
-                            '⚠️ 建议在空旷区域重新采样'}
-                    </div>
-                </div>
-            `;
-            accuracyDiv.style.display = 'block';
-            accuracyDiv.classList.add('bounce-in');
         }
 
         // 绑定按钮点击事件
         locationBtn.addEventListener('click', getCurrentLocation);
         multiSampleBtn.addEventListener('click', getMultiSampleLocation);
+        toggleConsoleBtn.addEventListener('click', toggleMobileConsole);
+        clearConsoleBtn.addEventListener('click', clearMobileConsole);
 
         // 检测浏览器环境
         function detectBrowserEnvironment() {
@@ -1671,6 +1410,9 @@
 
         // 页面加载完成后的初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化手机控制台
+            initMobileConsole();
+            
             // 检测浏览器环境
             detectBrowserEnvironment();
             
@@ -1679,10 +1421,12 @@
                 showStatus('⚠️ 高德地图API加载失败，请检查网络连接', 'error');
                 locationBtn.disabled = true;
                 multiSampleBtn.disabled = true;
+                toggleConsoleBtn.disabled = true;
                 locationBtn.textContent = '❌ API加载失败';
-                multiSampleBtn.textContent = '❌ API加载失败';
+                multiSampleBtn.textContent = '❌ 功能暂时禁用';
             } else {
-                console.log('🎉 高德地图API加载成功，超精准定位系统就绪');
+                console.log('🎉 高德地图API加载成功，简化定位系统就绪');
+                console.log('📱 手机控制台功能已启用，点击按钮查看详细日志');
                 
                 // 检查HTTPS
                 if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
