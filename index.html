@@ -3,227 +3,2057 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔧 定位系统</title>
+    <title>高德地图周边搜索</title>
+    <meta property="og:title" content="高德地图周边搜索" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://qinlang699.cn/" />
+    <meta property="og:image" content="https://img.icons8.com/color/480/map-marker.png" />
+    <meta property="og:description" content="一个快速、强大的高德地图周边信息搜索工具，帮您轻松找到目的地。" />
+    
     <script src="https://webapi.amap.com/maps?v=2.0&key=dcfb48c0f9cb749e59c5031e83cb6e95&plugin=AMap.Geolocation"></script>
+
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background: #f5f5f5;
+        /* ===============================================
+           全局样式设置
+           =============================================== */
+        ::-webkit-scrollbar {
+            width: 12px;
         }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #a9a9a9;
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        html {
+            scrollbar-width: auto;
+            scrollbar-color: #a9a9a9 #f1f1f1;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            outline: none !important;
+        }
+        
+        :root {
+            --lightbox-edge-area-size: 80px;
+        }
+        
+        /* ===============================================
+           基础布局样式
+           =============================================== */
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            min-height: 100vh;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+        }
+        
         .container {
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
-            max-width: 600px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            max-width: 1200px;
             margin: 0 auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            box-sizing: border-box;
         }
+        
         h1 {
-            text-align: center;
             color: #333;
+            text-align: center;
+            margin-bottom: 30px;
         }
+        
+        /* ===============================================
+           搜索表单样式
+           =============================================== */
+        .search-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        /* 移动端三行布局样式 */
+        .mobile-triple-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        /* 第一行：标签行 */
+        .mobile-labels-row {
+            display: flex;
+            justify-content: space-evenly;
+            margin: 0;
+            padding: 0;
+            gap: 25%;
+        }
+        
+        .mobile-label-left {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            white-space: nowrap;
+        }
+        
+        .mobile-label-right {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            white-space: nowrap;
+        }
+        
+        /* 第二行：输入框行 */
+        .mobile-input-row {
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .mobile-input-row input {
+            width: 100%;
+            box-sizing: border-box;
+            margin: 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        /* 第三行：按钮行 */
+        .mobile-buttons-row {
+            display: flex;
+            justify-content: space-around;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .mobile-button-left {
+            width: 30%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .mobile-button-right {
+            width: 30%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .mobile-buttons-row button {
+            width: 100%;
+            padding: 12px 8px;
+            font-size: 14px;
+            white-space: nowrap;
+            text-align: center;
+        }
+        
+        .mobile-triple-layout label {
+            margin: 0;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #555;
+            display: block;
+        }
+        
+        .search-form:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+        }
+        
+        #locationStatus {
+            text-align: left;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        
+        #radius, .input-stepper {
+            max-width: 120%;
+        }
+
+        #radius, #totalCount {
+            padding-top: 14px;
+            padding-bottom: 14px;
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .form-row.form-row-tight {
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .form-row.form-row-tight .form-group {
+            flex: none;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        /* ===============================================
+           按钮样式
+           =============================================== */
         button {
             background: #1890ff;
             color: white;
-            padding: 15px 30px;
+            padding: 12px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
             font-size: 16px;
-            display: block;
-            margin: 20px auto;
-            min-width: 200px;
+            margin-top: 10px;
+            transition: background-color 0.2s, transform 0.05s ease-out;
         }
+        
         button:hover {
             background: #40a9ff;
         }
+        
+        button:active {
+            background: #096dd9;
+            transform: translateY(1px);
+            transition: none;
+        }
+        
         button:disabled {
             background: #ccc;
             cursor: not-allowed;
+            border-color: #096dd9;
         }
-        .result {
-            margin: 20px 0;
+        
+        /* ===============================================
+           结果显示区域
+           =============================================== */
+        .results {
+            margin-top: 20px;
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .result-section {
+            margin-bottom: 20px;
             padding: 15px;
-            background: #f8f9fa;
-            border-radius: 5px;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+        }
+        
+        .result-section h3 {
+            margin-top: 0;
+            color: #1890ff;
+        }
+        
+        /* ===============================================
+           POI列表项样式
+           =============================================== */
+        .poi-item {
+            background: #fafafa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
             border-left: 4px solid #1890ff;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s ease;
+            position: relative;
+            min-height: 175px;
+        }
+        
+        .poi-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), 0 3px 5px rgba(0,0,0,0.1);
+        }
+        
+        .poi-name {
+            display: flex;
+            align-items: baseline;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 175px;
+            white-space: nowrap;
+            z-index: 2;
+        }
+        
+        .poi-number {
+            color: #444;
+            margin-right: 0.25em;
+        }
+        
+        .poi-name-content {
+            position: relative;
+            color: #444;
+            text-shadow: 
+                1px 1px 0px #b0b0b0,
+                2px 2px 1px rgba(59, 59, 59, 0.3);
+            transition: transform 0.1s ease-out, text-shadow 0.1s ease-out;
+            display: inline-block;
+        }
+
+        .poi-name-content::after {
+            content: none;
             display: none;
         }
-        .info-item {
-            margin: 10px 0;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
+
+        .poi-name:hover .poi-name-content {
+            color: #1890ff;
         }
-        .info-item:last-child {
-            border-bottom: none;
+        
+        .poi-name-wrapper {
+            position: relative;
         }
-        .label {
-            font-weight: bold;
-            color: #333;
-            display: inline-block;
-            width: 100px;
+
+        .poi-name-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #444;
+            box-shadow: 
+                1px 1px 0px #b0b0b0,
+                2px 2px 1px rgba(59, 59, 59, 0.3);
+            z-index: 1;
         }
-        .value {
+
+        .poi-name-content.selected {
+            color: #1890ff;
+        }
+        
+        .poi-name-content.pressed {
+            transform: translate(0, 2px);
+            text-shadow: 
+                1px 1px 0px #f5f5f5,
+                1px 1px 2px rgba(0,0,0,0.4);
+        }
+        
+        .poi-info {
             color: #666;
-            font-family: monospace;
+            font-size: 14px;
+            padding-right: 165px;
+            margin-top: 25px;
+            line-height: 1.6;
         }
-        .console {
-            background: #1e1e1e;
-            color: #00ff00;
+        
+        .poi-info-line {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 2px;
+        }
+        
+        /* ===============================================
+           地址按钮与弹窗
+           =============================================== */
+        .address-btn {
+            background: #1890ff;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 13px;
+            line-height: 1.3;
+            position: relative;
+            top: -6px;
+            left: 10px;
+            transition: background-color 0.2s, transform 0.05s ease-out;
+        }
+        .address-btn:hover {
+            background: #40a9ff;
+            color: white;
+        }
+        .address-btn:active {
+            background: #096dd9;
+            transform: translateY(1px);
+            transition: none;
+        }
+        .address-popover {
+            position: fixed;
+            background-color: #333;
+            color: white;
+            border-radius: 6px;
+            padding: 10px 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            z-index: 1010;
+            max-width: 80vw;
+            font-size: 14px;
+            line-height: 1.5;
+            user-select: all;
+            -webkit-user-select: all;
+            touch-action: none;
+        }
+        
+        .copy-toast {
+            position: fixed;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: transparent;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            z-index: 1020;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none;
+            text-shadow: 0 0 5px rgba(255,255,255,0.7);
+        }
+        
+        .copy-toast.show {
+            opacity: 1;
+        }
+
+        .poi-info-label {
+            flex-shrink: 0;
+            white-space: nowrap;
+            margin-right: 8px;
+        }
+        
+        .poi-info code {
+            word-break: break-all;
+            white-space: pre-wrap;
+            background-color: #f6f8fa;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* ===============================================
+           状态样式与提示
+           =============================================== */
+        .location-choice {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #f9f9f9;
+        }
+        .location-choice:hover {
+            background: #e9e9e9;
+            border-color: #ccc;
+        }
+        
+        .raw-data {
+            background: #f6f8fa;
             padding: 15px;
-            border-radius: 5px;
-            font-family: monospace;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
             font-size: 12px;
             max-height: 400px;
             overflow-y: auto;
             white-space: pre-wrap;
-            margin: 20px 0;
+            word-break: break-all;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #1890ff;
+            font-size: 16px;
+        }
+        
+        .error {
+            color: #ff4d4f;
+            background: #fff2f0;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ffccc7;
+        }
+        
+        .success {
+            color: #52c41a;
+            background: #f6ffed;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #b7eb8f;
+        }
+        
+        .info-prompt {
+            color: #1890ff;
+            background: #e6f7ff;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #91d5ff;
+        }
+
+        .recommend-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 2px 8px;
+            align-items: center;
+        }
+        .recommend-grid .recommend-emoji {
+            grid-row: 1 / span 2;
+            font-size: 1.5em;
+            align-self: center;
+        }
+        .recommend-grid .recommend-line-1,
+        .recommend-grid .recommend-text {
+            grid-column: 2;
+        }
+        
+        /* ===============================================
+           分类和排序按钮
+           =============================================== */
+        .sort-buttons button.active {
+            background-color: #096dd9;
+            border-color: #096dd9;
+        }
+        
+        .category-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 3px;
+            margin-bottom: 15px;
+        }
+
+        .category-buttons button {
+            background-color: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+            margin: 0;
+            padding: 4px 10px;
+            font-size: 14px;
+        }
+        .category-buttons button:hover {
+            background-color: #bae7ff;
+        }
+
+        /* ===============================================
+           滚动顶部按钮
+           =============================================== */
+        #scrollTopBtn {
             display: none;
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 99;
+            border: none;
+            outline: none;
+            background-color: rgba(24, 144, 255, 0.7);
+            color: white;
+            cursor: pointer;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 18px;
+            line-height: 1;
+            transition: background-color 0.3s, opacity 0.3s;
+        }
+
+        #scrollTopBtn:hover {
+            background-color: rgba(24, 144, 255, 1);
+        }
+
+        /* ===============================================
+           移动端响应式样式
+           =============================================== */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+
+            .container {
+                padding: 15px 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+
+            .form-row {
+                flex-direction: row;
+                gap: 10px;
+                align-items: flex-start;
+            }
+            
+            .form-row .form-group {
+                flex: 1;
+                min-width: 0;
+                margin-bottom: 15px; 
+            }
+            
+            .form-row label {
+                font-size: 13px;
+                white-space: nowrap;
+            }
+            .form-row input[type="number"] {
+                padding: 8px 6px;
+            }
+
+            #searchLocationBtn, #searchBtn {
+                width: auto;
+                box-sizing: border-box;
+            }
+
+            .category-buttons {
+                gap: 8px;
+            }
+            
+            .category-row {
+                display: contents;
+            }
+            
+            .category-buttons button {
+                margin: 0;
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
+            .results .result-section > div[style*="display: flex"] {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .sort-buttons {
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .sort-buttons button {
+                width: auto;
+                margin-left: 0 !important;
+            }
+            
+            .poi-item {
+                padding: 15px;
+                min-height: 175px;
+            }
+
+            .poi-name {
+                font-size: 15px;
+                padding-right: 145px;
+            }
+            
+            .poi-info {
+                font-size: 13px;
+                padding-right: 160px;
+            }
+            
+            .poi-item-photo {
+                width: 120px;
+                height: 120px;
+                bottom: 15px;
+                right: 15px;
+                z-index: 5;
+            }
+            
+            #scrollTopBtn {
+                bottom: 20px;
+                right: 20px;
+                padding: 12px;
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .category-buttons {
+                display: block; /* 在电脑端，容器本身不是grid或flex */
+                gap: 0;
+            }
+
+            .category-row {
+                display: grid;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .category-row:last-child {
+                margin-bottom: 0;
+            }
+
+            .category-row:nth-child(1) {
+                grid-template-columns: repeat(9, 1fr); /* 第一行9列 */
+            }
+
+            .category-row:nth-child(2) {
+                grid-template-columns: repeat(9, 1fr); /* 第二行9列 */
+            }
+
+            /* Reposition lightbox close areas for desktop/landscape */
+            .lightbox-close {
+                top: 0;
+                right: 0;
+                left: auto;
+                width: var(--lightbox-edge-area-size);
+                height: 100%;
+                padding: 20px 0; /* Adjust padding for vertical alignment */
+                /* Use flexbox to better control the 'x' position */
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+            }
+
+            .lightbox-bottom-close {
+                top: 0;
+                left: 0;
+                bottom: auto; /* Unset bottom positioning */
+                width: var(--lightbox-edge-area-size);
+                height: 100%;
+            }
+        }
+
+        /* Styles for stepper buttons */
+        .input-stepper {
+            display: flex;
+        }
+        .input-stepper input[type="number"] {
+            border-right: none;
+            border-radius: 4px 0 0 4px;
+            position: relative;
+            /* Hide ugly default arrows */
+            -moz-appearance: textfield;
+        }
+        .input-stepper input[type="number"]::-webkit-outer-spin-button,
+        .input-stepper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .stepper-buttons {
+            display: flex;
+            flex-direction: column;
+            width: 40px; /* Width of the buttons area, increased from 30px */
+            border: 1px solid #ddd;
+            border-left: none;
+            border-radius: 0 4px 4px 0;
+        }
+        
+        .stepper-btn {
+            background-color: #1890ff;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 10px;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1; /* Each button takes half the available height */
+            line-height: 0;
+            transition: background-color 0.2s, transform 0.05s ease-out;
+        }
+        .stepper-btn:hover {
+            background-color: #40a9ff;
+        }
+        
+        .stepper-btn:active {
+            background-color: #096dd9;
+            transform: translateY(1px);
+            transition: none;
+        }
+        
+        #increaseBtn {
+            border-bottom: 1px solid #40a9ff; /* Lighter separator for contrast */
+            border-radius: 0;
+        }
+        
+        #decreaseBtn {
+            border-top: none;
+            border-radius: 0;
+        }
+
+        /* Styles for the new photo gallery */
+        .photo-gallery-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .photo-gallery-container h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .photo-gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            background-color: #f0f0f0;
+            aspect-ratio: 1 / 1;
+        }
+        
+        .gallery-item a {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+
+        .gallery-item .poi-name-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+            color: white;
+            padding: 20px 8px 8px 8px;
+            font-size: 13px;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: opacity 0.3s ease;
+        }
+
+        .poi-item-photo {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            height: 150px; /* 调整高度以匹配画廊 */
+            width: 150px;  /* 调整宽度以匹配画廊，使其为正方形 */
+            border-radius: 8px; /* 与画廊样式同步 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 与画廊样式同步 */
+            object-fit: cover; /* 确保图片不变形 */
+            z-index: 5;
+            cursor: pointer;
+            transition: none; /* 移除过渡效果 */
+        }
+        .poi-item-photo:hover {
+            transform: none; /* 移除悬浮放大效果 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* 保持阴影不变 */
+            z-index: 5;
+        }
+
+        .poi-item-photo-placeholder {
+            background-color: #f0f2f5; /* Light grey background to match theme */
+            color: #b0b0b0; /* Softer text color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 26px;
+            font-weight: 500;
+        }
+
+        /* Lightbox Styles */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: none;
+        }
+
+        .lightbox-content {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 1010; /* Base layer for the image */
+        }
+
+        .lightbox-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 5px;
+            transform: translateZ(0);
+        }
+        
+        /* Shared styles for close areas */
+        .lightbox-close, .lightbox-bottom-close {
+            position: absolute;
+            cursor: pointer;
+            display: flex;
+        }
+
+        .lightbox-close {
+            box-sizing: border-box;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            transition: 0.3s;
+            z-index: 1020; /* Action layer, below arrows */
+        }
+        
+        .lightbox-bottom-close {
+            z-index: 1020; /* Action layer, same as top close */
+        }
+
+        .lightbox-close:hover,
+        .lightbox-close:focus {
+            color: #bbb;
+            text-decoration: none;
+        }
+
+        .lightbox-prev, .lightbox-next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            padding: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            background-color: rgba(0,0,0,0.3);
+            z-index: 1030; /* Top-most interactive layer */
+        }
+
+        .lightbox-prev:hover, .lightbox-next:hover {
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .lightbox-prev {
+            left: 15px;
+        }
+
+        .lightbox-next {
+            right: 15px;
+        }
+
+        .lightbox-caption {
+            text-align: center;
+            color: #ccc;
+            padding: 10px 0;
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            font-size: 16px;
+            z-index: 1035; /* Info layer, above image, below actions. Increased to be on top of everything. */
+            pointer-events: none; /* Make caption unclickable, clicks pass through */
+        }
+
+        /* Mobile-first layout: Top and bottom bars */
+        @media (max-width: 768px) {
+            .lightbox-close {
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: var(--lightbox-edge-area-size);
+                padding: 0 35px;
+                align-items: center;
+                justify-content: flex-end;
+            }
+            .lightbox-bottom-close {
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: var(--lightbox-edge-area-size);
+            }
+            .lightbox-prev, .lightbox-next {
+                display: none;
+            }
+        }
+
+        /* Desktop/landscape layout: Left and right bars */
+        @media (min-width: 769px) {
+            .lightbox-close {
+                top: 0;
+                right: 0;
+                left: auto;
+                width: var(--lightbox-edge-area-size);
+                height: 100%;
+                padding: 20px 0;
+                align-items: flex-start;
+                justify-content: center;
+            }
+            .lightbox-bottom-close {
+                top: 0;
+                left: 0;
+                bottom: auto;
+                width: var(--lightbox-edge-area-size);
+                height: 100%;
+            }
+        }
+    
+        @keyframes slide-in-from-right {
+            from { transform: translateX(110%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes slide-out-to-left {
+            from { transform: translateX(0); }
+            to { transform: translateX(-110%); }
+        }
+        @keyframes slide-in-from-left {
+            from { transform: translateX(-110%); }
+            to { transform: translateX(0); }
+        }
+        @keyframes slide-out-to-right {
+            from { transform: translateX(0); }
+            to { transform: translateX(110%); }
+        }
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+
+        /* Styles for the WX guide mask */
+        #wx-guide-mask {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.75);
+            z-index: 2000;
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 20px 25px;
+            box-sizing: border-box;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            cursor: pointer;
+        }
+        #wx-guide-mask .arrow {
+            width: 80px;
+            height: 80px;
+            /* New, clearer, hand-drawn style arrow */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%231890ff' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M30,70 C50,30 70,20 90,20 M75,5 L90,20 L75,35'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            margin-right: 15px; /* Move it slightly left for better alignment */
+        }
+        #wx-guide-mask .mask-text {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: right;
+            line-height: 1.5;
+            margin-top: 50px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        #restore-loader-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            flex-direction: column;
+            color: #333;
+            font-size: 18px;
+        }
+        #restore-loader-overlay::before {
+            content: '⚙️';
+            font-size: 48px;
+            margin-bottom: 20px;
+            display: block;
+            animation: spin 1.5s linear infinite;
+        }
+
+        /* Pointing arrow for restore-from-link */
+        #arrow-container {
+            display: none; /* Initially hidden */
+            position: absolute;
+            z-index: 4000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            /* Use flex to align children */
+            align-items: center;
+            gap: 8px; /* Space between arrow and text */
+            animation: bounce-arrow 1s infinite;
+        }
+
+        #pointing-arrow-visual {
+            width: 60px;
+            height: 60px;
+            /* 更改为立体的红色箭头 */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='arrowGrad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%23ff6b6b'/%3E%3Cstop offset='100%25' stop-color='%23cc0000'/%3E%3C/linearGradient%3E%3Cfilter id='shadow' x='-20%25' y='-20%25' width='140%25' height='140%25'%3E%3CfeDropShadow dx='2' dy='2' stdDeviation='3' flood-color='rgba(0,0,0,0.5)'/%3E%3C/filter%3E%3C/defs%3E%3Cpath d='M50,20 V80 M35,65 L50,80 L65,65' stroke='url(%23arrowGrad)' stroke-width='10' stroke-linecap='round' stroke-linejoin='round' filter='url(%23shadow)'/%3E%3C/svg%3E");
+            background-size: contain;
+            background-repeat: no-repeat;
+            filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.2)); /* 额外添加CSS阴影增强立体感 */
+            flex-shrink: 0; /* Prevent arrow from shrinking */
+        }
+
+        #pointing-arrow-text {
+            color: #333;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 5px 10px;
+            border-radius: 5px;
+            white-space: nowrap;
+            text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+        }
+
+        @keyframes bounce-arrow {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-15px);
+            }
+            60% {
+                transform: translateY(-8px);
+            }
         }
     </style>
 </head>
 <body>
+    <div id="arrow-container">
+        <div id="pointing-arrow-visual"></div>
+        <span id="pointing-arrow-text">点击地点跳转高德app</span>
+    </div>
     <div class="container">
-        <h1>🔧 定位系统</h1>
+        <h1>🗺️ 高德地图周边搜索</h1>
         
-        <button id="locationBtn" onclick="startLocation()">🚀 开始定位</button>
-        <button onclick="toggleConsole()">📱 显示/隐藏控制台</button>
         
-        <div id="console" class="console"></div>
-        <div id="result" class="result"></div>
+        <div class="search-form">
+            <!-- 移动端三行布局容器 -->
+            <div id="mobileLocationContainer" class="mobile-triple-layout" style="display: none;">
+                <!-- 第一行：标签 -->
+                <div class="mobile-labels-row">
+                    <div class="mobile-label-left">
+                        <label>1.获取当前定位:</label>
+                    </div>
+                    <div class="mobile-label-right">
+                        <label for="locationKeyword">2.手动输入位置:</label>
+                    </div>
+                </div>
+                
+                <!-- 第二行：输入框 -->
+                <div class="mobile-input-row">
+                    <input type="text" id="locationKeyword" placeholder="例如：杭州西湖" value="" oninput="onLocationInputChange()">
+                </div>
+                
+                <!-- 第三行：按钮 -->
+                <div class="mobile-buttons-row">
+                    <div class="mobile-button-left">
+                        <button id="currentLocationBtn" onclick="getCurrentLocation()">📍 高德定位</button>
+                    </div>
+                    <div class="mobile-button-right">
+                        <button onclick="searchLocationByKeyword()" id="searchLocationBtn">📍 获取该位置</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 电脑端单列布局容器 -->
+            <div id="desktopLocationContainer" style="display: none;">
+            <div class="form-group">
+                    <label for="locationKeyword" id="manualLocationLabel">1.手动输入位置:</label>
+                    <input type="text" id="locationKeywordDesktop" placeholder="例如：杭州西湖" value="" oninput="onLocationInputChange()">
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button onclick="searchLocationByKeyword()" id="searchLocationBtnDesktop">📍 获取该位置</button>
+            </div>
+                </div>
+            </div>
+            <div id="locationStatus" style="margin-top: 15px;"></div>
+
+            <div id="nearby-search-section" style="display: none;">
+                <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
+
+                <div class="form-group">
+                    <label for="keywords" id="categoryLabel">2.点击分类按钮或手动输入关键字:</label>
+                </div>
+
+                <div class="category-buttons form-group">
+                    <div class="category-row">
+                        <button onclick="searchByCategory('美食')">美食</button>
+                        <button onclick="searchByCategory('水果')">水果</button>
+                        <button onclick="searchByCategory('快餐')">快餐</button>
+                        <button onclick="searchByCategory('小吃')">小吃</button>
+                        <button onclick="searchByCategory('购物中心')">购物中心/商场</button>
+                        <button onclick="searchByCategory('美容美发')">美容美发</button>
+                        <button onclick="searchByCategory('运动场所')">运动场所</button>
+                        <button onclick="searchByCategory('休闲娱乐')">休闲娱乐</button>
+                        <button onclick="searchByCategory('午餐')">午餐/晚餐</button>
+                    </div>
+                    <div class="category-row">
+                        <button onclick="searchByCategory('电影剧院')">电影/剧院</button>
+                        <button onclick="searchByCategory('冷饮')">冷饮/饮品</button>
+                        <button onclick="searchByCategory('超市')">超市/便利店</button>
+                        <button onclick="searchByCategory('买药')">买药</button>
+                        <button onclick="searchByCategory('蔬菜')">蔬菜</button>
+                        <button onclick="searchByCategory('宾馆酒店')">宾馆酒店</button>
+                        <button onclick="searchByCategory('景点')">景点</button>
+                        <button onclick="searchByCategory('咖啡')">咖啡</button>
+                        <button onclick="searchByCategory('公共厕所')">公共厕所</button>
+                    </div>
+                </div>
+                
+                <div class="form-row" style="display: none;">
+                    <div class="form-group">
+                        <label for="longitude">经度 (自动填充):</label>
+                        <input type="text" id="longitude" placeholder="待自动填充" value="" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="latitude">纬度 (自动填充):</label>
+                        <input type="text" id="latitude" placeholder="待自动填充" value="" readonly>
+                    </div>
+                </div>
+                
+                <div class="form-row form-row-tight">
+                    <div class="form-group">
+                        <label for="radius">搜索半径(米):</label>
+                        <input type="number" id="radius" value="5000" min="1" max="50000">
+                    </div>
+                    <div class="form-group">
+                        <label for="totalCount">生成数量:</label>
+                        <div class="input-stepper">
+                            <input type="number" id="totalCount" value="50" min="0" max="200" placeholder="要显示的结果数量">
+                            <div class="stepper-buttons">
+                                <button id="increaseBtn" class="stepper-btn" aria-label="增加数量">▲</button>
+                                <button id="decreaseBtn" class="stepper-btn" aria-label="减少数量">▼</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <input type="text" id="keywords" placeholder="例如：西餐厅、火锅、星巴克等" value="中餐厅">
+                </div>
+                
+                <button onclick="searchNearby()" id="searchBtn">🔍 搜索周边</button>
+            </div>
+        </div>
+        
+        <div class="results" id="results"></div>
+    </div>
+
+    <!-- Lightbox Structure -->
+    <div id="lightbox" class="lightbox-overlay" style="display: none;">
+        <span class="lightbox-close">&times;</span>
+        <div class="lightbox-content">
+            <!-- Images are injected by JavaScript -->
+        </div>
+        <a class="lightbox-prev">&#10094;</a>
+        <a class="lightbox-next">&#10095;</a>
+        <div class="lightbox-caption"></div>
+        <div class="lightbox-bottom-close"></div>
+    </div>
+
+    <a id="scrollTopBtn" title="回到顶部">▲</a>
+
+    <!-- WX Guide Mask -->
+    <div id="wx-guide-mask">
+        <div class="arrow"></div>
+        <p class="mask-text">
+            请点击右上角菜单<br>选择"在浏览器打开"
+        </p>
+    </div>
+
+    <!-- Loader for the restore-from-link functionality -->
+    <div id="restore-loader-overlay">
+        <p>正在根据链接自动还原搜索...<br>请稍候</p>
     </div>
 
     <script>
-        const AMAP_KEY = 'dcfb48c0f9cb749e59c5031e83cb6e95';
-        let consoleDiv = document.getElementById('console');
-        let resultDiv = document.getElementById('result');
-        let locationBtn = document.getElementById('locationBtn');
-        let geolocation = null;
+        /* ===============================================
+           全局变量与配置
+           =============================================== */
+        let originalDistanceSortedPois = [];
+        let currentDisplaySort = 'rating';
+        let comprehensiveSortMode = 'cost_effective';
+        let searchCache = {};
+        let locationCache = {};
+        let cachedSortedResults = {
+            distance: [],
+            rating: [],
+            cost_effective: [],
+            high_end: []
+        };
+        let locationChoices = [];
+        let lastLocationKeyword = '';
+        let lastUsedSearchParams = {};
+        let isCurrentLocationSelection = false; // 标记是否来自高德定位选择
+        const CHINESE_CITIES = ['北京市', '天津市', '上海市', '重庆市', '香港特别行政区', '澳门特别行政区', '哈尔滨市', '齐齐哈尔市', '鸡西市', '鹤岗市', '双鸭山市', '大庆市', '伊春市', '佳木斯市', '七台河市', '牡丹江市', '黑河市', '绥化市', '大兴安岭地区', '长春市', '吉林市', '四平市', '辽源市', '通化市', '白山市', '松原市', '白城市', '延边朝鲜族自治州', '沈阳市', '大连市', '鞍山市', '抚顺市', '本溪市', '丹东市', '锦州市', '营口市', '阜新市', '辽阳市', '盘锦市', '铁岭市', '朝阳市', '葫芦岛市', '石家庄市', '唐山市', '秦皇岛市', '邯郸市', '邢台市', '保定市', '张家口市', '承德市', '沧州市', '廊坊市', '衡水市', '太原市', '大同市', '阳泉市', '长治市', '晋城市', '朔州市', '晋中市', '运城市', '忻州市', '临汾市', '吕梁市', '呼和浩特市', '包头市', '乌海市', '赤峰市', '通辽市', '鄂尔多斯市', '呼伦贝尔市', '巴彦淖尔市', '乌兰察布市', '兴安盟', '锡林郭勒盟', '阿拉善盟', '南京市', '无锡市', '徐州市', '常州市', '苏州市', '南通市', '连云港市', '淮安市', '盐城市', '扬州市', '镇江市', '泰州市', '宿迁市', '杭州市', '宁波市', '温州市', '嘉兴市', '湖州市', '绍兴市', '金华市', '衢州市', '舟山市', '台州市', '丽水市', '合肥市', '芜湖市', '蚌埠市', '淮南市', '马鞍山市', '淮北市', '铜陵市', '安庆市', '黄山市', '滁州市', '阜阳市', '宿州市', '六安市', '亳州市', '池州市', '宣城市', '福州市', '厦门市', '莆田市', '三明市', '泉州市', '漳州市', '南平市', '龙岩市', '宁德市', '南昌市', '景德镇市', '萍乡市', '九江市', '新余市', '鹰潭市', '赣州市', '吉安市', '宜春市', '抚州市', '上饶市', '济南市', '青岛市', '淄博市', '枣庄市', '东营市', '烟台市', '潍坊市', '济宁市', '泰安市', '威海市', '日照市', '临沂市', '德州市', '聊城市', '滨州市', '菏泽市', '郑州市', '开封市', '洛阳市', '平顶山市', '安阳市', '鹤壁市', '新乡市', '焦作市', '濮阳市', '许昌市', '漯河市', '三门峡市', '南阳市', '商丘市', '信阳市', '周口市', '驻马店市', '武汉市', '黄石市', '十堰市', '宜昌市', '襄阳市', '鄂州市', '荆门市', '孝感市', '荆州市', '黄冈市', '咸宁市', '随州市', '恩施土家族苗族自治州', '长沙市', '株洲市', '湘潭市', '衡阳市', '邵阳市', '岳阳市', '常德市', '张家界市', '益阳市', '郴州市', '永州市', '怀化市', '娄底市', '湘西土家族苗族自治州', '广州市', '韶关市', '深圳市', '珠海市', '汕头市', '佛山市', '江门市', '湛江市', '茂名市', '肇庆市', '惠州市', '梅州市', '汕尾市', '河源市', '阳江市', '清远市', '东莞市', '中山市', '潮州市', '揭阳市', '云浮市', '南宁市', '柳州市', '桂林市', '梧州市', '北海市', '防城港市', '钦州市', '贵港市', '玉林市', '百色市', '贺州市', '河池市', '来宾市', '崇左市', '海口市', '三亚市', '三沙市', '儋州市', '成都市', '自贡市', '攀枝花市', '泸州市', '德阳市', '绵阳市', '广元市', '遂宁市', '内江市', '乐山市', '南充市', '眉山市', '宜宾市', '广安市', '达州市', '雅安市', '巴中市', '资阳市', '阿坝藏族羌族自治州', '甘孜藏族自治州', '凉山彝族自治州', '贵阳市', '六盘水市', '遵义市', '安顺市', '毕节市', '铜仁市', '黔西南布依族苗族自治州', '黔东南苗族侗族自治州', '黔南布依族苗族自治州', '昆明市', '曲靖市', '玉溪市', '保山市', '昭通市', '丽江市', '普洱市', '临沧市', '楚雄彝族自治州', '红河哈尼族彝族自治州', '文山壮族苗族自治州', '西双版纳傣族自治州', '大理白族自治州', '德宏傣族景颇族自治州', '怒江傈僳族自治州', '迪庆藏族自治州', '拉萨市', '日喀则市', '昌都市', '林芝市', '山南市', '那曲市', '阿里地区', '西安市', '铜川市', '宝鸡市', '咸阳市', '渭南市', '延安市', '汉中市', '榆林市', '安康市', '商洛市', '兰州市', '嘉峪关市', '金昌市', '白银市', '天水市', '武威市', '张掖市', '平凉市', '酒泉市', '庆阳市', '定西市', '陇南市', '临夏回族自治州', '甘南藏族自治州', '西宁市', '海东市', '海北藏族自治州', '黄南藏族自治州', '海南藏族自治州', '果洛藏族自治州', '玉树藏族自治州', '海西蒙古族藏族自治州', '银川市', '石嘴山市', '吴忠市', '固原市', '中卫市', '乌鲁木齐市', '克拉玛依市', '吐鲁番市', '哈密市', '昌吉回族自治州', '博尔塔拉蒙古自治州', '巴音郭楞蒙古自治州', '阿克苏地区', '克孜勒苏柯尔克孜自治州', '喀什地区', '和田地区', '伊犁哈萨克自治州', '塔城地区', '阿勒泰地区'];
+        let allPoiPhotos = [];
+        let currentPoiPhotos = [];
+        let currentPhotoIndex = 0;
+        let isLightboxAnimating = false;
+        const preventNavSwipe = (e) => e.preventDefault();
+        let linkClicked = false;
 
-        // 控制台输出
-        function log(message) {
-            const time = new Date().toLocaleTimeString();
-            consoleDiv.textContent += `[${time}] ${message}\n`;
-            consoleDiv.scrollTop = consoleDiv.scrollHeight;
-            console.log(message);
-        }
-
-        function toggleConsole() {
-            consoleDiv.style.display = consoleDiv.style.display === 'none' ? 'block' : 'none';
-        }
-
-        // WGS-84转GCJ-02坐标转换
-        async function convertCoords(wgsLng, wgsLat) {
-            try {
-                const url = `https://restapi.amap.com/v3/assistant/coordinate/convert?locations=${wgsLng},${wgsLat}&coordsys=gps&output=json&key=${AMAP_KEY}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.status === '1' && data.locations) {
-                    const [gcjLng, gcjLat] = data.locations.split(',').map(Number);
-                    const offsetDistance = calculateDistance(wgsLat, wgsLng, gcjLat, gcjLng);
-                    log(`✅ 坐标转换成功: 偏移${Math.round(offsetDistance)}米`);
-                    return { longitude: gcjLng, latitude: gcjLat };
-                }
-                throw new Error('API转换失败');
-            } catch (error) {
-                log(`❌ 坐标转换失败: ${error.message}`);
-                return { longitude: wgsLng, latitude: wgsLat };
+        const CONFIG = {
+            GAODE_BASE_URL: 'https://restapi.amap.com',
+            GAODE_KEY: 'dcfb48c0f9cb749e59c5031e83cb6e95',
+            DEFAULT_PARAMS: {
+                output: 'json',
+                show_fields: 'business,photos'
             }
-        }
-
-        // 计算距离
-        function calculateDistance(lat1, lng1, lat2, lng2) {
-            const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLng = (lng2 - lng1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLng/2) * Math.sin(dLng/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-
-        // 获取最近POI
-        async function getNearestPOI(lng, lat) {
-            try {
-                const url = `https://restapi.amap.com/v3/geocode/regeo?location=${lng},${lat}&key=${AMAP_KEY}&radius=100&extensions=all&output=json`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.status === '1' && data.regeocode) {
-                    const pois = data.regeocode.pois || [];
-                    
-                    if (pois.length > 0) {
-                        // 按距离排序，取最近的
-                        pois.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
-                        const nearest = pois[0];
-                        
-                        log(`🎯 找到${pois.length}个POI，最近的是:`);
-                        log(`📍 ${nearest.name} (${nearest.distance}米)`);
-                        
-                        // 输出所有POI信息
-                        log(`📋 全部POI列表:`);
-                        pois.forEach((poi, index) => {
-                            log(`${index + 1}. ${poi.name} - ${poi.distance}米 - ${poi.type}`);
-                        });
-                        
-                        return {
-                            name: nearest.name,
-                            distance: nearest.distance,
-                            type: nearest.type,
-                            allPois: pois
-                        };
-                    } else {
-                        // 如果没有POI，返回格式化地址
-                        const address = data.regeocode.formatted_address;
-                        log(`📍 无POI数据，返回地址: ${address}`);
-                        return {
-                            name: address,
-                            distance: 0,
-                            type: '地址',
-                            allPois: []
-                        };
-                    }
-                }
-                throw new Error('逆地理编码失败');
-            } catch (error) {
-                log(`❌ 获取POI失败: ${error.message}`);
-                return null;
-            }
-        }
-
-        // 显示结果
-        function showResult(lat, lng, poi) {
-            resultDiv.innerHTML = `
-                <div class="info-item">
-                    <span class="label">经度:</span>
-                    <span class="value">${lng.toFixed(8)}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">纬度:</span>
-                    <span class="value">${lat.toFixed(8)}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">最近地址:</span>
-                    <span class="value">${poi ? poi.name : '未知'}</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">距离:</span>
-                    <span class="value">${poi ? poi.distance + '米' : '-'}</span>
-                </div>
-            `;
-            resultDiv.style.display = 'block';
-        }
-
-        // 主定位函数
-        async function startLocation() {
-            locationBtn.disabled = true;
-            locationBtn.textContent = '🔄 定位中...';
-            resultDiv.style.display = 'none';
-            consoleDiv.textContent = '';
+        };
+        
+        /* ===============================================
+           核心API与工具函数
+           =============================================== */
+        async function callGaodeAPI(apiPath, params = {}) {
+            const queryParams = {
+                ...params,
+                key: CONFIG.GAODE_KEY
+            };
+            const url = `${CONFIG.GAODE_BASE_URL}/${apiPath}?${new URLSearchParams(queryParams).toString()}`;
             
-            log('🚀 开始定位...');
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status} ${response.statusText}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                throw new Error(`API调用失败: ${error.message}`);
+            }
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function truncateString(str, num) {
+            if (!str) return '';
+            if (str.length <= num) {
+                return str;
+            }
+            return str.slice(0, num) + '...';
+        }
+
+        function searchByCategory(category) {
+            document.getElementById('keywords').value = category;
+            searchNearby();
+        }
+
+        /* ===============================================
+           POI类型映射与数据处理
+           =============================================== */
+        const POI_KEYWORD_MAP = {
+            '050100': ['餐厅', '饭店',  '吃饭','中餐厅', '中餐','午餐', '午饭', '晚餐', '晚饭'],
+            '050101': ['酒楼'],
+            '050102': ['四川菜', '川菜'],
+            '050103': ['广东菜', '粤菜'],
+            '050104': ['山东菜', '鲁菜'],
+            '050105|050107|050106': ['江苏菜', '浙江菜', '上海菜', '杭帮菜'],
+            '050108': ['湖南菜', '湘菜'],
+            '050109': ['安徽菜', '徽菜'],
+            '050111': ['北京菜'],
+            '050116': ['老字号'],
+            '050117': ['火锅店', '火锅'],
+            '050119': ['海鲜'],
+            '050120': ['素菜'],
+            '050200': ['外国餐厅'],
+            '050201': ['西餐厅', '西餐'],
+            '050300': ['快餐'],
+            '050301': ['肯德基'],
+            '050302': ['麦当劳'],
+            '050303': ['必胜客'],
+            '050305': ['茶餐厅'],
+            '050500': ['咖啡', '咖啡馆', '咖啡店'],
+            '050501': ['星巴克', '星巴克咖啡'],
+            '050600': ['喝茶'],
+            '050700': ['冷饮', '奶茶', '饮品'],
+            '050800': ['糕饼'],
+            '050900': ['甜品'],
+            '060200|060400': ['超市', '便利店'],
+            '060101': ['购物中心', '商场'],
+            '060704': ['水果', '水果店', '水果摊'],
+            '060705': ['蔬菜', '菜市场'],
+            '090601': ['买药', '药店', '药房'],
+            '100100|100101': ['宾馆酒店', '高档酒店', '宾馆', '旅馆', '旅店'],
+            '110000': ['风景', '景点'],
+            '080100': ['运动场所'],
+            '080500|080300': ['休闲娱乐'],
+            '080600': ['电影院', '电影剧院'],
+            '071100|090201': ['美容美发'],
+            '200300': ['公共厕所'],
+        };
+        const SORTED_KEYWORDS = Object.entries(POI_KEYWORD_MAP)
+            .flatMap(([code, keywords]) => keywords.map(kw => ({ keyword: kw, code: code })))
+            .sort((a, b) => b.keyword.length - a.keyword.length);
+
+        function findPoiTypeByKeyword(userInput) {
+            if (!userInput) return null;
+            const found = Object.entries(POI_KEYWORD_MAP).find(([code, keywords]) => {
+                return keywords.includes(userInput);
+            });
+            return found ? found[0] : null;
+        }
+        
+        function deduplicatePois(pois) {
+            const seen = new Set();
+            return pois.filter(poi => {
+                const name = poi.name;
+                if (seen.has(name)) {
+                    return false;
+                }
+                seen.add(name);
+                return true;
+            });
+        }
+        
+        /* ===============================================
+           排序算法与缓存管理
+           =============================================== */
+        function applySort(sortType) {
+            currentDisplaySort = sortType;
+            let listToRender = [];
+            
+            if (sortType === 'comprehensive') {
+                listToRender = cachedSortedResults[comprehensiveSortMode];
+            } else {
+                listToRender = cachedSortedResults[sortType];
+            }
+            
+            renderPoiList(listToRender);
+            updateSortButtonStyles(); // 更新按钮状态
+        }
+
+        function toggleComprehensiveSort() {
+            // 如果当前已经是综合排序模式，则切换综合排序类型
+            if (currentDisplaySort === 'comprehensive') {
+            comprehensiveSortMode = comprehensiveSortMode === 'cost_effective' ? 'high_end' : 'cost_effective';
+            }
+            // 如果不是综合排序模式，直接应用当前的综合排序模式，不切换
+            applySort('comprehensive');
+        }
+
+        function precomputeAndCacheAllSorts(limit) {
+            const effectiveLimit = limit > 0 ? limit : originalDistanceSortedPois.length;
+            cachedSortedResults.distance = [...originalDistanceSortedPois].slice(0, effectiveLimit);
+            cachedSortedResults.rating = sortPoisByRating(originalDistanceSortedPois).slice(0, effectiveLimit);
+            cachedSortedResults.cost_effective = sortPoisByComprehensive(originalDistanceSortedPois, 'cost_effective').slice(0, effectiveLimit);
+            cachedSortedResults.high_end = sortPoisByComprehensive(originalDistanceSortedPois, 'high_end').slice(0, effectiveLimit);
+        }
+
+        function sortPoisByRating(pois) {
+            const sortedByDistance = [...pois].sort((a, b) => a.distance - b.distance);
+
+            const poisWithRanks = sortedByDistance.map(poi => ({
+                ...poi,
+                distanceRank: Math.floor(poi.distance / 500) + 1,
+                rating: parseFloat(poi.business?.rating) || 0,
+            }));
+
+            const sortedByRating = [...poisWithRanks].sort((a, b) => b.rating - a.rating);
+            sortedByRating.forEach((p, i) => {
+                const originalPoi = poisWithRanks.find(item => item.id === p.id);
+                if(originalPoi) originalPoi.ratingRank = i + 1;
+            });
+
+            const maxRatingRank = poisWithRanks.length;
+            let maxDistance = 0;
+            poisWithRanks.forEach(p => {
+                if (p.distance > maxDistance) maxDistance = p.distance;
+            });
+            const maxDistanceRank = Math.floor(maxDistance / 500) + 1;
+
+            poisWithRanks.forEach(poi => {
+                const normRating = maxRatingRank > 1 ? (poi.ratingRank - 1) / (maxRatingRank - 1) : 0;
+                const normDistance = maxDistanceRank > 1 ? (poi.distanceRank - 1) / (maxDistanceRank - 1) : 0;
+                poi.compositeScore = (normRating * 0.8) + (normDistance * 0.2);
+            });
+            
+            poisWithRanks.sort((a, b) => a.compositeScore - b.compositeScore);
+            
+            return poisWithRanks;
+        }
+
+        /**
+         * 根据综合规则排序
+         * @param {Array} pois
+         * @param {'cost_effective' | 'high_end'} mode
+         */
+        function sortPoisByComprehensive(pois, mode) {
+            // 新的性价比排序逻辑，不再区分 mode
+            if (mode === 'cost_effective') {
+                const poisWithData = pois
+                    .map(poi => ({
+                        ...poi,
+                        rating: parseFloat(poi.business?.rating) || 0,
+                        cost: parseFloat(poi.business?.cost) || 0,
+                        distance: parseInt(poi.distance, 10) || Infinity,
+                        distanceRank: Math.floor((parseInt(poi.distance, 10) || 0) / 500) + 1,
+                    }))
+                    .filter(poi => poi.rating > 0 && poi.cost > 0);
+
+                if (poisWithData.length === 0) return pois; // 如果没有可用数据，返回原始列表
+
+                poisWithData.forEach(poi => {
+                    poi.pricePerformance = poi.rating / poi.cost;
+                });
+
+                // 找到最大和最小的性价比值和距离排名，用于归一化
+                let maxPricePerformance = -Infinity, minPricePerformance = Infinity;
+                let maxDistanceRank = -Infinity, minDistanceRank = Infinity;
+
+                poisWithData.forEach(p => {
+                    if (p.pricePerformance > maxPricePerformance) maxPricePerformance = p.pricePerformance;
+                    if (p.pricePerformance < minPricePerformance) minPricePerformance = p.pricePerformance;
+                    if (p.distanceRank > maxDistanceRank) maxDistanceRank = p.distanceRank;
+                    if (p.distanceRank < minDistanceRank) minDistanceRank = p.distanceRank;
+                });
+                
+                // 归一化并计算综合得分
+                poisWithData.forEach(poi => {
+                    // 归一化性价比值 (越高越好)
+                    const normPricePerformance = (maxPricePerformance - minPricePerformance > 0)
+                        ? (poi.pricePerformance - minPricePerformance) / (maxPricePerformance - minPricePerformance)
+                        : 0;
+
+                    // 归一化距离排名 (越低越好，所以用 1 - normalized_value)
+                    const normDistanceRank = (maxDistanceRank - minDistanceRank > 0)
+                        ? 1 - ((poi.distanceRank - minDistanceRank) / (maxDistanceRank - minDistanceRank))
+                        : 0;
+                    
+                    // 应用权重
+                    poi.compositeScore = (normPricePerformance * 0.7) + (normDistanceRank * 0.3);
+                });
+
+                // 按综合得分降序排序
+                poisWithData.sort((a, b) => b.compositeScore - a.compositeScore);
+                
+                // 将没有数据的POI放回列表末尾
+                const poisWithoutData = pois.filter(p => !(p.business?.rating > 0 && p.business?.cost > 0));
+                
+                return [...poisWithData, ...poisWithoutData];
+
+            } else { // 'high_end' 逻辑保持不变或按原样处理
+                 // 确保pois是按距离排序的
+                const sortedByDistance = [...pois].sort((a, b) => a.distance - b.distance);
+
+                const poisWithRanks = sortedByDistance.map(poi => ({
+                    ...poi,
+                    distanceRank: Math.floor(poi.distance / 500) + 1,
+                    rating: parseFloat(poi.business?.rating) || 0,
+                    cost: parseFloat(poi.business?.cost) || 0,
+                }));
+
+                // 评级排名 (高分在前)
+                const sortedByRating = [...poisWithRanks].sort((a, b) => b.rating - a.rating);
+                sortedByRating.forEach((p, i) => {
+                    const originalPoi = poisWithRanks.find(item => item.id === p.id);
+                    if (originalPoi) originalPoi.ratingRank = i + 1;
+                });
+
+                // 人均消费排名
+                const withCost = poisWithRanks.filter(p => p.cost > 0);
+                const withoutCost = poisWithRanks.filter(p => p.cost <= 0);
+                
+                // 高档: 高消费在前
+                withCost.sort((a, b) => b.cost - a.cost); 
+                
+                withCost.forEach((p, i) => {
+                    const originalPoi = poisWithRanks.find(item => item.id === p.id);
+                    if (originalPoi) originalPoi.costRank = i + 1;
+                });
+
+                const lowestRank = withCost.length + 1;
+                withoutCost.forEach(p => {
+                    const originalPoi = poisWithRanks.find(item => item.id === p.id);
+                    if (originalPoi) originalPoi.costRank = lowestRank;
+                });
+                
+                // Find max ranks for normalization
+                const maxRatingRank = poisWithRanks.length;
+                const maxCostRank = poisWithRanks.length; // All items get a costRank
+                let maxDistance = 0;
+                poisWithRanks.forEach(p => {
+                    if (p.distance > maxDistance) maxDistance = p.distance;
+                });
+                const maxDistanceRank = Math.floor(maxDistance / 500) + 1;
+
+                // Define weights for high_end mode
+                const weights = { distance: 0, rating: 0.3, cost: 0.7 };
+                
+                // Calculate composite score using normalized ranks for fairness
+                poisWithRanks.forEach(p => {
+                    if (p.cost <= 0) {
+                        p.compositeScore = Infinity;
+                        return;
+                    }
+
+                    if (p.ratingRank && p.costRank) { // Ensure ranks exist
+                        const normRating = maxRatingRank > 1 ? (p.ratingRank - 1) / (maxRatingRank - 1) : 0;
+                        const normCost = maxCostRank > 1 ? (p.costRank - 1) / (maxCostRank - 1) : 0;
+                        const normDistance = maxDistanceRank > 1 ? (p.distanceRank - 1) / (maxDistanceRank - 1) : 0;
+                        
+                        p.compositeScore = (normDistance * weights.distance) + (normRating * weights.rating) + (normCost * weights.cost);
+                    } else {
+                        p.compositeScore = Infinity; // Put items without full ranks at the end
+                    }
+                });
+
+                // 按综合得分升序排序
+                poisWithRanks.sort((a, b) => a.compositeScore - b.compositeScore);
+                return poisWithRanks;
+            }
+        }
+
+        /* ===============================================
+           POI列表渲染与显示
+           =============================================== */
+        function renderPoiList(pois) {
+            const listContainer = document.getElementById('poi-list-container');
+            if (!listContainer) return;
+            
+            let html = '';
+            pois.forEach((poi, index) => {
+                let displayType;
+                if (poi.type) {
+                    const typeParts = poi.type.split(';');
+                    // 使用第二级分类（如果存在），否则回退到第一级
+                    displayType = typeParts[1] || typeParts[0] || '未分类';
+                } else {
+                    displayType = '未分类';
+                }
+
+                // 根据要求应用自定义名称映射
+                const typeNameMap = {
+                    '便民商店/便利店': '便利店',
+                    '个人用品/化妆品店': '洗护化妆品',
+                    '汽车养护/装饰': '汽车养护',
+                    '金融保险服务机构': '金融服务',
+                    '政府及社会团体相关': '政府机构相关',
+                    '医药保健销售店': '医药保健销售',
+                    '医疗保健服务场所': '医疗保健服务',
+                    '电动自动车充电站': '双轮车充电站',
+                    '彩票彩券销售点': '彩票彩券',
+                    '服装鞋帽皮具店': '服装鞋帽皮具'
+                };
+                displayType = typeNameMap[displayType] || displayType;
+
+                // 如果第二类型的最后两个字为：维修，统一改成：汽车维修
+                if (displayType.endsWith('维修')) {
+                    displayType = '汽车维修';
+                }
+
+                // 当第二类型包含 销售 且大于等于7个中文字，全部改成汽车销售
+                if (displayType.includes('销售') && displayType.length >= 7) {
+                    displayType = '汽车销售';
+                }
+                
+                // const mapUrl = getMapUrl(poi); // This is now handled dynamically
+                const poiName = truncateString(poi.name || '未知地点', 28);//最多显示28个字符
+
+                let photoHtml = '';
+                if (poi.photos && poi.photos.length > 0) {
+                    const firstPhotoUrl = poi.photos[0].url;
+                    // Escape quotes for the HTML attribute.
+                    const photosJson = JSON.stringify(poi.photos).replace(/"/g, '&quot;');
+                    photoHtml = `<img src="${firstPhotoUrl}" class="poi-item-photo lightbox-trigger" alt="${poi.name}" loading="lazy" data-photos="${photosJson}" data-poi-id="${poi.id}" title="点击预览 ${poi.photos.length} 张图片">`;
+                } else {
+                    // Render a placeholder if no photos are available.
+                    // It uses 'poi-item-photo' for sizing/positioning, and the new class for styling.
+                    // Importantly, it does NOT have the 'lightbox-trigger' class, making it unclickable.
+                    photoHtml = `<div class="poi-item-photo poi-item-photo-placeholder">敬请期待</div>`;
+                }
+
+                const fullAddress = buildFullAddress(poi);
+                const escapedAddress = fullAddress.replace(/"/g, '&quot;');
+
+                // Helper to create consistently styled info lines
+                const createInfoLine = (label, value) => {
+                    if (!value || value.toString().trim() === '' || value === '暂无电话') return '';
+                    return `<div class="poi-info-line">
+                                <span class="poi-info-label">${label}</span>
+                                <span class="poi-info-value">${value}</span>
+                            </div>`;
+                };
+
+                let infoHtml = ``;
+                infoHtml += createInfoLine('📞电话:', formatPhoneNumber(poi.business?.tel));
+                infoHtml += createInfoLine('🏠类型:', displayType);
+                infoHtml += createInfoLine('📏直线距离:', poi.distance ? poi.distance + '米' : '距离未知');
+                
+                if (poi.business_area) {
+                    infoHtml += createInfoLine('🏢商圈:', poi.business_area);
+                }
+                if (poi.business?.rating && parseFloat(poi.business.rating) > 0) {
+                    infoHtml += createInfoLine('⭐评分:', poi.business.rating);
+                }
+                if (poi.business?.cost) {
+                    infoHtml += createInfoLine('💰人均:', poi.business.cost + '元');
+                }
+                
+                // 将详细地址按钮移到最后一行
+                infoHtml += `<div class="poi-info-line"><button class="address-btn" data-address="${escapedAddress}"> 详细地址 </button></div>`;
+                
+                html += `
+                    <div class="poi-item" id="poi-item-${poi.id}">
+                        <a href="#" onclick="handlePoiClick(event, '${poi.id}')" class="poi-name">
+                            <span class="poi-number">${index + 1}. </span>
+                            <span class="poi-name-wrapper">
+                                <span class="poi-name-content">${poiName}</span>
+                            </span>
+                        </a>
+                        <div class="poi-info">
+                            ${infoHtml}
+                        </div>
+                        ${photoHtml}
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+            updateSortButtonStyles();
+        }
+        
+        /**
+         * 根据设备类型生成跳转高德地图的URL
+         * @param {object} poi - POI对象
+         * @returns {string} - 跳转链接
+         */
+        function getMapUrl(poi) {
+            const poiName = encodeURIComponent(poi.name);
+            const locationParts = poi.location.split(',');
+            const lon = locationParts[0];
+            const lat = locationParts[1];
+            const deviceType = getDeviceType();
+
+            switch (deviceType) {
+                case 'ios':
+                    return `iosamap://viewMap?poiname=${poiName}&lat=${lat}&lon=${lon}&dev=0`;
+                case 'android':
+                    return `androidamap://viewMap?poiname=${poiName}&lat=${lat}&lon=${lon}&dev=0`;
+                case 'wechat':
+                    // 微信中使用特殊URL，会触发微信引导蒙层
+                    return `/#poiId=${poi.id}`;
+                case 'pc':
+                default:
+                    // PC端使用标准高德地图网页
+                    return `https://www.amap.com/place/${poi.id}`;
+            }
+        }
+        
+        /**
+         * 更新排序按钮的样式
+         */
+        function updateSortButtonStyles() {
+            const buttons = document.querySelectorAll('.sort-buttons button');
+            buttons.forEach(button => {
+                if (button.dataset.sort === currentDisplaySort) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
+                }
+            });
+            
+            const comprehensiveBtn = document.querySelector('button[data-sort="comprehensive"]');
+            if (comprehensiveBtn) {
+                comprehensiveBtn.textContent = comprehensiveSortMode === 'cost_effective' ? '性价比综合' : '高档综合';
+            }
+        }
+        
+        /**
+         * 格式化电话号码字符串
+         * - 去除重复号码
+         * - 去除末尾的 ',0'
+         * - 用 ' / ' 连接多个号码
+         * @param {string} telString - 原始电话号码字符串
+         * @returns {string} 格式化后的电话号码
+         */
+        function formatPhoneNumber(telString) {
+            if (!telString || typeof telString !== 'string') {
+                return '暂无电话';
+            }
+            
+            const numbers = telString.split(';').map(num => {
+                let cleanedNum = num.trim();
+                // 专门处理API可能返回的末尾为 ',0' 的情况
+                if (cleanedNum.endsWith(',0')) {
+                    cleanedNum = cleanedNum.substring(0, cleanedNum.length - 2);
+                }
+                return cleanedNum;
+            });
+
+            const uniqueNumbers = [...new Set(numbers.filter(n => n))]; // 过滤空字符串并去重
+
+            if (uniqueNumbers.length === 0) {
+                return '暂无电话';
+            }
+
+            // Wrap each number in a span to prevent it from breaking midway
+            return uniqueNumbers.map(n => `<span style="white-space: nowrap;">${n}</span>`).join('<br>');
+        }
+        
+        /**
+         * 构建完整地址
+         */
+        function buildFullAddress(poi) {
+            const addressParts = [];
+            if (poi.cityname) addressParts.push(poi.cityname);
+            if (poi.adname) addressParts.push(poi.adname);
+            if (poi.address) addressParts.push(poi.address);
+            return addressParts.join('') || '地址未知';
+        }
+
+        /**
+         * 处理并显示中心点POI信息
+         * @param {object} poi - POI对象
+         * @param {boolean} fromCache - 是否来自缓存
+         */
+        function processLocationPoi(poi, fromCache = false) {
+            const location = poi.location;
+            if (!location) {
+                throw new Error('API返回的POI中缺少坐标信息。');
+            }
+            const [longitude, latitude] = location.split(',');
+            document.getElementById('longitude').value = longitude;
+            document.getElementById('latitude').value = latitude;
+            
+            const addressParts = [];
+            if (poi.pname) addressParts.push(poi.pname);
+            if (poi.cityname && poi.cityname !== poi.pname) addressParts.push(poi.cityname);
+            if (poi.adname) addressParts.push(poi.adname);
+            if (poi.address) addressParts.push(poi.address);
+            const fullAddress = addressParts.join('') || '地址未知';
+
+            const statusDiv = document.getElementById('locationStatus');
+            statusDiv.innerHTML = `<div class="success">✅ 坐标获取成功！<br><strong></strong> ${poi.name}<br><strong></strong> ${fullAddress}</div>`;
+            document.getElementById('nearby-search-section').style.display = 'block';
+            
+            // 成功处理后，更新"上一次的关键字"
+            lastLocationKeyword = document.getElementById('locationKeyword').value.trim();
+        }
+
+        /**
+         * 渲染多个中心点选项
+         * @param {Array<object>} pois - POI数组
+         * @param {boolean} recommendCity - 是否显示推荐输入城市的提示
+         */
+        function renderLocationChoices(pois, recommendCity = false) {
+            locationChoices = pois;
+            const statusDiv = document.getElementById('locationStatus');
+            
+            let promptHtml;
+            if (recommendCity) {
+                // New structure using grid for alignment
+                promptHtml = `
+                    <div class="info-prompt recommend-grid">
+                        <div class="recommend-emoji">💡</div>
+                        <div class="recommend-line-1">请选择以下坐标中的一个:</div>
+                        <div class="recommend-text">推荐输入包含城市的地点以精确定位</div>
+                    </div>`;
+            } else {
+                if (isCurrentLocationSelection) {
+                    promptHtml = `<div class="success">请选择您所在的位置:(由近到远)</div>`;
+                } else {
+                    promptHtml = `<div class="success">请选择以下坐标中的一个:</div>`;
+                }
+            }
+
+            let choicesHtml = promptHtml;
+            
+            pois.forEach((poi, index) => {
+                const fullAddress = buildFullAddress(poi);
+                choicesHtml += `
+                    <div class="location-choice" onclick="selectLocation(${index})">
+                        <strong>${poi.name}</strong><br>
+                        <small>${fullAddress}</small>
+                    </div>
+                `;
+            });
+            
+            statusDiv.innerHTML = choicesHtml;
+            document.getElementById('nearby-search-section').style.display = 'none'; // Ensure this is hidden
+        }
+
+        /**
+         * 从多个选项中选择一个中心点
+         * @param {number} index - 所选POI在locationChoices数组中的索引
+         */
+        function selectLocation(index) {
+            const selectedPoi = locationChoices[index];
+            
+            // 更新两个输入框为所选的地名
+            const mobileInput = document.getElementById('locationKeyword');
+            const desktopInput = document.getElementById('locationKeywordDesktop');
+
+            if (mobileInput) mobileInput.value = selectedPoi.name;
+            if (desktopInput) desktopInput.value = selectedPoi.name;
+
+            // 清理选项
+            locationChoices = [];
+            
+            if (isCurrentLocationSelection) {
+                // 来自高德定位：只填入文本框，设置按钮状态，不缓存
+                isCurrentLocationSelection = false;
+                updateSearchButtonState('completed');
+                // 处理所选POI
+                processLocationPoi(selectedPoi, false);
+                // 更新关键字但不缓存到locationCache（高德定位每次都重新获取）
+                lastLocationKeyword = selectedPoi.name;
+            } else {
+                // 来自手动输入：正常处理并缓存
+            processLocationPoi(selectedPoi, false);
+                updateSearchButtonState('completed');
+            // 使用新的、明确的地名作为键来缓存选择
+            locationCache[selectedPoi.name] = { pois: [selectedPoi], cityMatch: true };
+            // 成功选择后，同样更新"上一次的关键字"
+            lastLocationKeyword = selectedPoi.name;
+        }
+        }
+
+        /* ===============================================
+           中心点定位与选择
+           =============================================== */
+        
+        // 按钮状态管理
+        function updateSearchButtonState(state) {
+            const mobileBtn = document.getElementById('searchLocationBtn');
+            const desktopBtn = document.getElementById('searchLocationBtnDesktop');
+            
+            const updateBtn = (btn) => {
+                if (!btn) return;
+                switch (state) {
+                    case 'completed':
+                        btn.textContent = '✅ 已获取位置';
+                        btn.disabled = true;
+                        btn.style.backgroundColor = '#ccc';
+                        btn.style.cursor = 'not-allowed';
+                        break;
+                    case 'normal':
+                    default:
+                        btn.textContent = '📍 获取该位置';
+                        btn.disabled = false;
+                        btn.style.backgroundColor = '';
+                        btn.style.cursor = 'pointer';
+                        break;
+                }
+            };
+            
+            updateBtn(mobileBtn);
+            updateBtn(desktopBtn);
+        }
+        
+        // 输入框变化监听
+        function onLocationInputChange() {
+            // 同步输入框内容
+            const mobileInput = document.getElementById('locationKeyword');
+            const desktopInput = document.getElementById('locationKeywordDesktop');
+            
+            // 确定是哪个输入框发生了变化，并同步到另一个
+            if (event && event.target) {
+                if (event.target.id === 'locationKeyword') {
+                    if (desktopInput) desktopInput.value = event.target.value;
+                } else if (event.target.id === 'locationKeywordDesktop') {
+                    if (mobileInput) mobileInput.value = event.target.value;
+                }
+            }
+            
+            // 当输入框内容变化时，恢复按钮状态
+            updateSearchButtonState('normal');
+        }
+        
+        // 高德定位功能
+        async function getCurrentLocation() {
+            // 检查是否为电脑端
+            const deviceInfo = detectDeviceType();
+            if (deviceInfo.isDesktop) {
+                alert('该功能仅在移动设备上可用。请在手机或平板电脑上访问此页面使用定位功能。');
+                return;
+            }
+
+            const currentLocationBtn = document.getElementById('currentLocationBtn');
+            const statusDiv = document.getElementById('locationStatus');
+            const nearbySection = document.getElementById('nearby-search-section');
+            
+            // 隐藏周边搜索区域
+            nearbySection.style.display = 'none';
+            document.getElementById('results').innerHTML = '';
+            
+            // 重置"获取该位置"按钮到正常状态
+            updateSearchButtonState('normal');
+            
+            // 设置按钮状态
+            currentLocationBtn.disabled = true;
+            currentLocationBtn.textContent = '🔄 定位中...';
+            statusDiv.innerHTML = `<div class="loading">正在获取您的当前位置...</div>`;
             
             try {
                 if (typeof AMap === 'undefined') {
@@ -231,7 +2061,7 @@
                 }
 
                 AMap.plugin('AMap.Geolocation', function() {
-                    geolocation = new AMap.Geolocation({
+                    const geolocation = new AMap.Geolocation({
                         enableHighAccuracy: true,
                         timeout: 15000,
                         maximumAge: 0,  // 不使用缓存
@@ -244,61 +2074,1433 @@
                             let lng = result.position.lng;
                             const isConverted = result.info?.isConverted || false;
                             
-                            log(`📍 原始坐标: ${lng.toFixed(8)}, ${lat.toFixed(8)}`);
-                            log(`🔧 坐标系转换: ${isConverted ? 'YES' : 'NO'}`);
-                            
-                            // 如果未转换，手动转换
+                            // 如果未转换，手动转换坐标系
                             if (!isConverted) {
-                                log('🔄 开始坐标系转换...');
-                                const converted = await convertCoords(lng, lat);
-                                lng = converted.longitude;
-                                lat = converted.latitude;
+                                try {
+                                    const url = `https://restapi.amap.com/v3/assistant/coordinate/convert?locations=${lng},${lat}&coordsys=gps&output=json&key=dcfb48c0f9cb749e59c5031e83cb6e95`;
+                                    const response = await fetch(url);
+                                    const data = await response.json();
+                                    
+                                    if (data.status === '1' && data.locations) {
+                                        const [gcjLng, gcjLat] = data.locations.split(',').map(Number);
+                                        lng = gcjLng;
+                                        lat = gcjLat;
+                                    }
+                                } catch (error) {
+                                    console.log('坐标转换失败，使用原坐标:', error);
+                                }
                             }
                             
-                            log(`✅ 最终坐标: ${lng.toFixed(8)}, ${lat.toFixed(8)}`);
+                            // 获取周边POI (半径100米，最多5个)
+                            const nearbyPois = await getNearbyPOIs(lng, lat);
                             
-                            // 获取最近POI
-                            const poi = await getNearestPOI(lng, lat);
-                            
-                            // 显示结果
-                            showResult(lat, lng, poi);
-                            
-                            log('🎉 定位完成');
+                            if (nearbyPois && nearbyPois.length > 0) {
+                                // 标记为高德定位选择
+                                isCurrentLocationSelection = true;
+                                // 使用现有的地点选择UI
+                                renderLocationChoices(nearbyPois, false);
+                            } else {
+                                // 如果没有POI，进行逆地理编码获取地址
+                                const address = await reverseGeocode(lng, lat);
+                                if (address) {
+                                    // 创建一个虚拟POI对象
+                                    const virtualPoi = {
+                                        name: address,
+                                        location: `${lng},${lat}`,
+                                        address: address,
+                                        pname: '',
+                                        cityname: '',
+                                        adname: ''
+                                    };
+                                    processLocationPoi(virtualPoi, false);
+                                } else {
+                                    statusDiv.innerHTML = `<div class="error">无法获取位置信息</div>`;
+                                }
+                            }
                             
                         } catch (error) {
-                            log(`❌ 处理失败: ${error.message}`);
+                            statusDiv.innerHTML = `<div class="error">定位处理失败: ${error.message}</div>`;
+                            isCurrentLocationSelection = false; // 重置标志
                         } finally {
-                            locationBtn.disabled = false;
-                            locationBtn.textContent = '🚀 重新定位';
+                            currentLocationBtn.disabled = false;
+                            currentLocationBtn.textContent = '📍 高德定位';
                         }
                     });
 
                     geolocation.on('error', function(error) {
-                        log(`❌ 定位失败: ${error.message || error.info}`);
-                        locationBtn.disabled = false;
-                        locationBtn.textContent = '🚀 重新定位';
+                        statusDiv.innerHTML = `<div class="error">定位失败: ${error.message || error.info}</div>`;
+                        isCurrentLocationSelection = false; // 重置标志
+                        currentLocationBtn.disabled = false;
+                        currentLocationBtn.textContent = '📍 高德定位';
                     });
 
                     geolocation.getCurrentPosition();
                 });
 
             } catch (error) {
-                log(`❌ 初始化失败: ${error.message}`);
-                locationBtn.disabled = false;
-                locationBtn.textContent = '🚀 重新定位';
+                statusDiv.innerHTML = `<div class="error">定位初始化失败: ${error.message}</div>`;
+                isCurrentLocationSelection = false; // 重置标志
+                currentLocationBtn.disabled = false;
+                currentLocationBtn.textContent = '📍 高德定位';
+            }
+        }
+        
+        // 获取周边POI - 逐步扩大搜索范围
+        async function getNearbyPOIs(lng, lat) {
+            const searchRadii = [100, 500, 2000]; // 搜索半径：100米 -> 500米 -> 2000米
+            let allPois = [];
+            let formattedAddress = '';
+            let addressComponent = {};
+            
+            try {
+                for (const radius of searchRadii) {
+                    console.log(`搜索半径 ${radius}米...`);
+                    
+                    const url = `https://restapi.amap.com/v3/geocode/regeo?location=${lng},${lat}&key=dcfb48c0f9cb749e59c5031e83cb6e95&radius=${radius}&extensions=all&output=json`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+                    
+                    if (data.status === '1' && data.regeocode) {
+                        // 保存地址信息（第一次获取时）
+                        if (!formattedAddress && data.regeocode.formatted_address) {
+                            formattedAddress = data.regeocode.formatted_address;
+                            addressComponent = data.regeocode.addressComponent || {};
+                        }
+                        
+                        // 获取此半径下的POI
+                        if (data.regeocode.pois && data.regeocode.pois.length > 0) {
+                            const newPois = data.regeocode.pois;
+                            
+                            // 去重（避免不同半径搜索到重复POI）
+                            const existingNames = new Set(allPois.map(poi => poi.name));
+                            const uniqueNewPois = newPois.filter(poi => !existingNames.has(poi.name));
+                            
+                            // 添加新的POI到总列表
+                            uniqueNewPois.forEach(poi => {
+                                allPois.push({
+                                    name: poi.name,
+                                    location: poi.location || `${lng},${lat}`,
+                                    address: poi.address || '',
+                                    pname: addressComponent.province || '',
+                                    cityname: addressComponent.city || '',
+                                    adname: addressComponent.district || '',
+                                    distance: poi.distance,
+                                    searchRadius: radius // 记录搜索半径
+                                });
+                            });
+                            
+                            console.log(`半径 ${radius}米: 新增 ${uniqueNewPois.length} 个POI，总计 ${allPois.length} 个`);
+                            
+                            // 如果已经找到5个或更多POI，停止搜索
+                            if (allPois.length >= 5) {
+                                console.log(`已找到足够的POI (${allPois.length}个)，停止扩大搜索范围`);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // 按距离排序，取前5个
+                allPois.sort((a, b) => parseFloat(a.distance) - parseFloat(b.distance));
+                const resultPois = allPois.slice(0, 5);
+                
+                // 如果仍然不够5个，添加"当前位置"作为选项
+                if (resultPois.length < 5 && formattedAddress) {
+                    resultPois.push({
+                        name: '当前位置',
+                        location: `${lng},${lat}`,
+                        address: formattedAddress,
+                        pname: addressComponent.province || '',
+                        cityname: addressComponent.city || '',
+                        adname: addressComponent.district || '',
+                        distance: '0',
+                        searchRadius: 0
+                    });
+                }
+                
+                console.log(`最终返回 ${resultPois.length} 个地点选项`);
+                return resultPois;
+                
+            } catch (error) {
+                console.error('获取周边POI失败:', error);
+                return [];
+            }
+        }
+        
+        // 逆地理编码
+        async function reverseGeocode(lng, lat) {
+            try {
+                const url = `https://restapi.amap.com/v3/geocode/regeo?location=${lng},${lat}&key=dcfb48c0f9cb749e59c5031e83cb6e95&radius=50&extensions=base&output=json`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.status === '1' && data.regeocode) {
+                    return data.regeocode.formatted_address;
+                }
+                return null;
+            } catch (error) {
+                console.error('逆地理编码失败:', error);
+                return null;
             }
         }
 
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof AMap === 'undefined') {
-                log('❌ 高德API加载失败');
-                locationBtn.disabled = true;
-                locationBtn.textContent = '❌ API加载失败';
+        // 获取当前激活的输入框值
+        function getCurrentLocationKeyword() {
+            const deviceInfo = detectDeviceType();
+            let locationKeyword = '';
+            
+            if (deviceInfo.isDesktop) {
+                const desktopInput = document.getElementById('locationKeywordDesktop');
+                locationKeyword = desktopInput ? desktopInput.value.trim() : '';
             } else {
-                log('✅ 系统就绪');
+                const mobileInput = document.getElementById('locationKeyword');
+                locationKeyword = mobileInput ? mobileInput.value.trim() : '';
+            }
+            
+            return locationKeyword || '杭州西湖';
+        }
+
+        async function searchLocationByKeyword(isAutomated = false) {
+            let locationKeyword = getCurrentLocationKeyword();
+
+            const statusDiv = document.getElementById('locationStatus');
+            const nearbySection = document.getElementById('nearby-search-section');
+            
+            // 获取当前活跃的按钮
+            const deviceInfo = detectDeviceType();
+            const searchBtn = deviceInfo.isDesktop ? 
+                document.getElementById('searchLocationBtnDesktop') : 
+                document.getElementById('searchLocationBtn');
+            
+            // 只有当关键字改变时，才清空结果和缓存
+            if (locationKeyword !== lastLocationKeyword) {
+                originalDistanceSortedPois = []; 
+                searchCache = {}; // 清空周边搜索缓存
+                cachedSortedResults = { distance: [], rating: [], cost_effective: [], high_end: [] };
+                document.getElementById('results').innerHTML = ''; 
+                nearbySection.style.display = 'none'; // 修改中心点时隐藏下方内容
+            }
+
+            // 检查中心点缓存
+            if (locationCache[locationKeyword]) {
+                try {
+                    const cachedResult = locationCache[locationKeyword];
+                    
+                    if (cachedResult && cachedResult.pois) {
+                        const pois = cachedResult.pois;
+                        const recommendCity = !cachedResult.cityMatch;
+
+                        if (pois.length > 1) {
+                            // 从缓存加载多个选项，恢复按钮正常状态等待用户选择
+                            const searchBtn = document.getElementById('searchLocationBtn');
+                            searchBtn.disabled = false;
+                            searchBtn.textContent = '📍 获取该位置';
+                            renderLocationChoices(pois, recommendCity);
+                            // 选择后会在selectLocation中设置按钮状态
+                        } else if (pois.length === 1) {
+                            processLocationPoi(pois[0], true);
+                            updateSearchButtonState('completed');
+                        } else {
+                            statusDiv.innerHTML = `<div class="error">没有找到满足您要求的坐标</div>`;
+                        }
+
+                    } else {
+                        throw new Error("Invalid cache format.");
+                    }
+                } catch (error) {
+                    statusDiv.innerHTML = `<div class="error">缓存数据处理失败: ${error.message}</div>`;
+                    delete locationCache[locationKeyword]; // 移除错误的缓存
+                }
+                return; // 从缓存加载后直接返回
+            }
+
+            searchBtn.disabled = true;
+            searchBtn.textContent = '🔄 搜索中...';
+            statusDiv.innerHTML = `<div class="loading">正在通过关键字获取坐标...</div>`;
+            
+            // 重置高德定位选择标志（确保手动搜索时的处理逻辑正确）
+            isCurrentLocationSelection = false;
+            
+            let matchedCity = '';
+            for (const city of CHINESE_CITIES) {
+                const cityName = city.replace(/市|省|自治区|特别行政区/, '');
+                if (locationKeyword.includes(cityName) && cityName) {
+                    matchedCity = city;
+                    break;
+                }
+            }
+            
+            const params = {
+                keywords: locationKeyword,
+                page_num: '1',
+                page_size: '5' // Always fetch up to 5 results
+            };
+
+            if (matchedCity) {
+                params.region = matchedCity;
+            }
+
+            let searchSuccess = false;
+
+            try {
+                const data = await callGaodeAPI('v5/place/text', params);
+                let poisToProcess = (data.status === '1' && data.pois) ? data.pois : [];
+
+                // If a city was matched, strictly filter results on the client-side
+                if (matchedCity && poisToProcess.length > 0) {
+                    const targetCityName = matchedCity.replace(/市|省|自治区|特别行政区/, '');
+                    poisToProcess = poisToProcess.filter(poi => {
+                        return poi.cityname && poi.cityname.includes(targetCityName);
+                    });
+                }
+
+                if (poisToProcess.length > 0) {
+                    searchSuccess = true;
+                    // Cache the result along with whether a city was matched
+                    locationCache[locationKeyword] = { pois: poisToProcess, cityMatch: !!matchedCity };
+                    
+                    if (isAutomated) {
+                        // 自动化流程，直接选择第一个结果
+                        processLocationPoi(poisToProcess[0], false);
+                        updateSearchButtonState('completed');
+                    } else {
+                        // 手动流程：显示选项或直接处理
+                        if (poisToProcess.length > 1 || !matchedCity) {
+                            // 搜索成功，先恢复按钮正常状态，等待用户选择
+                            searchBtn.disabled = false;
+                            searchBtn.textContent = '📍 获取该位置';
+                            renderLocationChoices(poisToProcess, !matchedCity);
+                            // 选择后会在selectLocation中设置按钮状态
+                        } else {
+                            processLocationPoi(poisToProcess[0], false);
+                            updateSearchButtonState('completed');
+                        }
+                    }
+                } else {
+                    statusDiv.innerHTML = `<div class="error">没有找到满足您要求的坐标</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error">中心点坐标获取失败: ${error.message}</div>`;
+                document.getElementById('longitude').value = '';
+                document.getElementById('latitude').value = '';
+            } finally {
+                if (!searchSuccess) {
+                    // 只有在失败时才恢复正常状态
+                searchBtn.disabled = false;
+                    searchBtn.textContent = '📍 获取该位置';
+                }
+            }
+        }
+
+        /* ===============================================
+           搜索执行与结果处理
+           =============================================== */
+        async function searchNearby() {
+            originalDistanceSortedPois = [];
+            cachedSortedResults = { distance: [], rating: [], cost_effective: [], high_end: [] };
+            currentDisplaySort = 'rating';
+            comprehensiveSortMode = 'cost_effective';
+            
+            const resultsDiv = document.getElementById('results');
+            const currentHeight = resultsDiv.offsetHeight;
+            resultsDiv.style.minHeight = `${currentHeight > 0 ? currentHeight : 80}px`;
+
+            resultsDiv.innerHTML = `
+                <div class="result-section" id="search-status-section">
+                    <h3>🔄 正在搜索地点列表，请稍候...</h3>
+                </div>
+            `;
+
+            await sleep(50);
+            await doSearch();
+        }
+
+        /**
+         * 核心的搜索执行函数
+         */
+        async function doSearch() {
+            const params = getSearchParams();
+            const totalPagesToFetch = parseInt(params.page_num, 10);
+            let isPoiTypeSearch = false;
+
+            if (!validateParams(params)) {
+                return;
+            }
+            
+            const userInput = params.keywords;
+            let finalTypes = null;
+            let finalKeywords = userInput;
+
+            // 最高优先级：检查输入是否为6位POI代码
+            if (/^\d{6}$/.test(userInput)) {
+                finalTypes = userInput;
+                finalKeywords = '';
+                isPoiTypeSearch = true;
+            } else {
+                // 常规逻辑：通过关键字查找POI类型 (完全匹配)
+                const matchedPoiType = findPoiTypeByKeyword(userInput);
+                if (matchedPoiType) {
+                    finalTypes = matchedPoiType;
+                    finalKeywords = '';
+                    isPoiTypeSearch = true;
+                }
+            }
+            
+            // 根据最终确定的参数生成缓存键
+            const cacheKey = JSON.stringify({ 
+                types: finalTypes || '', 
+                keywords: finalKeywords, 
+                location: params.location, 
+                radius: params.radius, 
+                page_num: totalPagesToFetch 
+            });
+
+            // 检查缓存
+            if (searchCache[cacheKey]) {
+                const cached = searchCache[cacheKey];
+                
+                originalDistanceSortedPois = [...cached.aggregatedData.pois].sort((a, b) => a.distance - b.distance);
+                precomputeAndCacheAllSorts(params.requested_count);
+                
+                let listToDisplay;
+                if (currentDisplaySort === 'comprehensive') {
+                    listToDisplay = cachedSortedResults[comprehensiveSortMode];
+                } else {
+                    listToDisplay = cachedSortedResults[currentDisplaySort];
+                }
+
+                displayResults(cached.aggregatedData, cached.pagesFetched, listToDisplay, cached.rawFetchedCount, cached.isPoiTypeSearch, true, params);
+                return; // 命中缓存，立即返回
+            }
+            
+            // --- 核心搜索逻辑开始 ---
+            const statusH3 = document.querySelector('#search-status-section h3');
+            const allPois = [];
+            let totalReportedCount = 0;
+            let finalStatus = '1';
+            let finalInfo = '';
+            let finalInfocode = '';
+            let lastFetchedPage = 0;
+            let pois = [];
+
+            try {
+                // --- 步骤 1: 获取所有页的基础 POI 数据 ---
+                for (let currentPage = 1; currentPage <= totalPagesToFetch; currentPage++) {
+                    lastFetchedPage = currentPage;
+                    
+                    if (statusH3) {
+                        statusH3.textContent = `🔄 正在搜索地点列表... (${currentPage}/${totalPagesToFetch})`;
+                    }
+
+                    const currentParams = {
+                        ...params,
+                        page_num: currentPage,
+                        sortrule: 'distance',
+                        types: finalTypes,
+                        keywords: finalKeywords
+                    };
+                    
+                    const requestParams = buildRequestParams(currentParams);
+
+                    const data = await callGaodeAPI('v5/place/around', requestParams);
+                    
+                    if (data.status !== '1') {
+                        finalStatus = data.status;
+                        finalInfo = data.info;
+                        finalInfocode = data.infocode;
+                        break; 
+                    }
+                    
+                    if (currentPage === 1) {
+                        totalReportedCount = data.count || 0;
+                    }
+                    
+                    pois = data.pois || [];
+                    allPois.push(...pois);
+
+                    if (pois.length === 0) {
+                        break;
+                    }
+
+                    if (currentPage < totalPagesToFetch) {
+                        await sleep(150);
+                    }
+                }
+                
+                // --- 步骤 2 & 3: 处理和展示最终数据 (详情已在步骤1获取) ---
+                if (statusH3) {
+                    statusH3.textContent = `✅ 搜索完成，正在处理数据...`;
+                }
+
+                let pagesToDisplay = lastFetchedPage;
+                if (pois.length === 0 && lastFetchedPage > 0) {
+                    pagesToDisplay = lastFetchedPage - 1;
+                }
+
+                const rawFetchedCount = allPois.length;
+                const uniquePois = deduplicatePois(allPois);
+
+                const aggregatedData = {
+                    status: finalStatus,
+                    info: finalInfo,
+                    infocode: finalInfocode,
+                    count: totalReportedCount,
+                    pois: uniquePois
+                };
+
+                originalDistanceSortedPois = [...uniquePois].sort((a, b) => a.distance - b.distance);
+                precomputeAndCacheAllSorts(params.requested_count);
+                
+                const initialPoisToDisplay = cachedSortedResults[comprehensiveSortMode];
+
+                const dataToCache = {
+                    aggregatedData: aggregatedData,
+                    pagesFetched: pagesToDisplay,
+                    rawFetchedCount: rawFetchedCount,
+                    isPoiTypeSearch: isPoiTypeSearch
+                };
+                searchCache[cacheKey] = dataToCache;
+                
+                displayResults(aggregatedData, pagesToDisplay, cachedSortedResults['rating'], rawFetchedCount, isPoiTypeSearch, false, params);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `<div class="error">请求失败: ${error.message}</div>`;
+            }
+        }
+        
+        /**
+         * 获取搜索参数
+         */
+        function getSearchParams() {
+            const requestedCount = parseInt(document.getElementById('totalCount').value, 10) || 0;
+            // 计算需要请求的页数，确保能覆盖用户请求的数量
+            const pageNum = requestedCount > 0 ? Math.ceil(requestedCount / 25) : 0;
+
+            return {
+                keywords: document.getElementById('keywords').value.trim(),
+                location: `${document.getElementById('longitude').value},${document.getElementById('latitude').value}`,
+                radius: document.getElementById('radius').value,
+                page_num: pageNum,
+                page_size: 25, // 每页数量固定为25
+                requested_count: requestedCount // 把用户请求的数量也传出去
+            };
+        }
+        
+        /**
+         * 验证参数
+         */
+        function validateParams(params) {
+            const [lng, lat] = params.location.split(',');
+            if (!lng || !lat || isNaN(lng) || isNaN(lat)) {
+                alert('中心点位置未获取！');
+                return false;
+            }
+
+            if (!params.keywords) {
+                alert('请输入周边搜索关键字！');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        /**
+         * 构建请求参数
+         */
+        function buildRequestParams(params) {
+            // 基础参数，不包含keywords和types，避免污染
+            const requestParams = {
+                location: params.location,
+                radius: params.radius,
+                page_num: params.page_num,
+                page_size: params.page_size,
+                sortrule: params.sortrule,
+                ...CONFIG.DEFAULT_PARAMS
+            };
+
+            // 根据最终确定的参数，只添加其中一个，确保请求纯粹性
+            if (params.types) {
+                requestParams.types = params.types;
+            } else if (params.keywords) {
+                requestParams.keywords = params.keywords;
+            }
+            
+            return requestParams;
+        }
+        
+        /**
+         * 显示搜索结果
+         */
+        function displayResults(data, pagesFetched, initialPois, rawFetchedCount, isPoiTypeSearch, isFromCache = false, searchParams = null) {
+            const resultsDiv = document.getElementById('results');
+            const statusSection = document.getElementById('search-status-section');
+
+            if (!statusSection) {
+                resultsDiv.innerHTML = '<div class="error">渲染错误：找不到状态显示区域。</div>';
+                return;
+            }
+
+            const oldPoiList = document.getElementById('poi-list-section');
+            if (oldPoiList) oldPoiList.remove();
+            const oldRawData = document.querySelector('.raw-data-section');
+            if (oldRawData) oldRawData.remove();
+
+            if (data.status === '1') {
+                if (searchParams) {
+                    lastUsedSearchParams = {
+                        radius: searchParams.radius,
+                        count: searchParams.requested_count
+                    };
+                }
+                const displayedCount = initialPois.length;
+                const searchMessage = isPoiTypeSearch ? '类型搜索成功' : '关键字搜索成功';
+                
+                let successMessage = `为您找到 ${displayedCount}个地点。`;
+                
+                // 更新状态区域为"成功"
+                statusSection.innerHTML = `
+                    <h3>✅ ${searchMessage}</h3>
+                    <div class="success">
+                       ${successMessage}
+                    </div>
+                `;
+                
+                if (initialPois.length > 0) {
+                    // 创建并追加新的POI列表区域
+                    const poiListSection = document.createElement('div');
+                    poiListSection.id = 'poi-list-section';
+                    poiListSection.className = 'result-section';
+
+                    poiListSection.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="margin: 0;">📍 地点列表</h3>
+                            <div class="sort-buttons">
+                                <button onclick="toggleComprehensiveSort()" data-sort="comprehensive" title="点击切换综合排序模式" style="font-size: 13px; padding: 5px 12px; margin-top: 0; min-width: 90px; text-align: center;">性价比综合</button>
+                                <button onclick="applySort('rating')" data-sort="rating" title="点击按好评度排序" style="font-size: 13px; padding: 5px 12px; margin-top: 0; margin-left: 5px;">好评优先</button>
+                                <button onclick="applySort('distance')" data-sort="distance" title="点击按距离排序" style="font-size: 13px; padding: 5px 12px; margin-top: 0; margin-left: 5px;">距离优先</button>
+                            </div>
+                        </div>
+                        <div id="poi-list-container"></div>
+                    `;
+                    resultsDiv.appendChild(poiListSection);
+                    
+                    renderPoiList(initialPois);
+                }
+
+            } else { // 错误情况
+                const errorMsg = data.info || '未知错误';
+                const infoCode = data.infocode || '';
+                
+                // 更新状态区域为"失败"
+                statusSection.innerHTML = `
+                    <h3>❌ 搜索失败</h3>
+                    <div class="error">
+                        错误信息: ${errorMsg}<br>
+                        错误代码: ${infoCode}
+                    </div>
+                `;
+                
+                // 创建并追加原始数据区域
+                const rawDataSection = document.createElement('div');
+                rawDataSection.className = 'result-section raw-data-section';
+                rawDataSection.innerHTML = `
+                    <h3>📋 原始返回数据</h3>
+                    <div class="raw-data">${JSON.stringify(data, null, 2)}</div>
+                `;
+                resultsDiv.appendChild(rawDataSection);
+            }
+
+            const resultsContainer = document.getElementById('results');
+            
+            // 在所有UI更新完成后，将状态区域滚动到视图顶部
+            const statusSectionToScroll = document.getElementById('search-status-section');
+            if (statusSectionToScroll) {
+                statusSectionToScroll.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // Reset the container's height so it can shrink if needed
+            resultsContainer.style.minHeight = '';
+        }
+        
+        /**
+         * 渲染所有地点的图片墙
+         */
+        function renderPhotoGallery(pois) {
+            const gallerySection = document.getElementById('photo-gallery-section');
+            const galleryGrid = document.getElementById('photo-gallery-grid');
+            if (!gallerySection || !galleryGrid) return;
+
+            const poisWithPhotos = pois.filter(p => p.photos && p.photos.length > 0);
+
+            if (poisWithPhotos.length === 0) {
+                gallerySection.style.display = 'block';
+                galleryGrid.innerHTML = '<p style="color: #666;">本次搜索的所有地点均未找到官方图片。</p>';
+                return;
+            }
+            
+            let galleryHtml = '';
+            poisWithPhotos.forEach(poi => {
+                // 每个地点只取第一张图放入画廊
+                const photo = poi.photos[0];
+                galleryHtml += `
+                    <div class="gallery-item">
+                        <a href="${photo.url}" target="_blank" title="点击查看大图: ${poi.name}">
+                            <img src="${photo.url}" alt="${poi.name}" loading="lazy">
+                            <div class="poi-name-overlay">${poi.name}</div>
+                        </a>
+                    </div>
+                `;
+            });
+            
+            galleryGrid.innerHTML = galleryHtml;
+            gallerySection.style.display = 'block';
+        }
+
+        /**
+         * 如果需要，则平滑滚动到结果区域
+         */
+        function scrollToResultsIfNeeded() {
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+        
+        // 设备检测函数
+        function detectDeviceType() {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(userAgent);
+            const isTablet = /ipad|android(?!.*mobile)/i.test(userAgent);
+            
+            return {
+                isMobile: isMobile && !isTablet,
+                isTablet: isTablet,
+                isDesktop: !isMobile && !isTablet,
+                userAgent: navigator.userAgent
+            };
+        }
+        
+        // 根据设备类型调整UI
+        function adjustUIForDevice() {
+            const deviceInfo = detectDeviceType();
+            const mobileContainer = document.getElementById('mobileLocationContainer');
+            const desktopContainer = document.getElementById('desktopLocationContainer');
+            const categoryLabel = document.getElementById('categoryLabel');
+            
+            if (deviceInfo.isDesktop) {
+                // 电脑端：显示电脑端布局，隐藏移动端布局
+                if (mobileContainer) {
+                    mobileContainer.style.display = 'none';
+                }
+                if (desktopContainer) {
+                    desktopContainer.style.display = 'block';
+                }
+                // 修改分类标签为"2.点击分类按钮或手动输入关键字:"
+                if (categoryLabel) {
+                    categoryLabel.textContent = '2.点击分类按钮或手动输入关键字:';
+                }
+            } else {
+                // 移动端：显示移动端三行布局，隐藏电脑端布局
+                if (mobileContainer) {
+                    mobileContainer.style.display = 'block';
+                }
+                if (desktopContainer) {
+                    desktopContainer.style.display = 'none';
+                }
+                // 修改分类标签为"3.点击分类按钮或手动输入关键字:"
+                if (categoryLabel) {
+                    categoryLabel.textContent = '3.点击分类按钮或手动输入关键字:';
+                }
+            }
+            
+            // 同步两个输入框的值
+            syncInputFields();
+        }
+        
+        // 同步移动端和电脑端输入框的值
+        function syncInputFields() {
+            const mobileInput = document.getElementById('locationKeyword');
+            const desktopInput = document.getElementById('locationKeywordDesktop');
+            
+            if (mobileInput && desktopInput) {
+                // 以移动端输入框为准，同步到电脑端
+                desktopInput.value = mobileInput.value;
+            }
+        }
+        
+        // ===== 页面加载完成后的初始化 =====
+        document.addEventListener('DOMContentLoaded', function() {
+            // 首先调整设备UI
+            adjustUIForDevice();
+            
+            // 清理掉之前用于"复现搜索"但失败了的 sessionStorage 逻辑。
+            // 由于微信和外部浏览器会话隔离，此方案无效。
+            // 保留一个干净的启动流程。
+
+            // ===== 新增：处理从 /poi/ID?context... 跳转过来的逻辑 =====
+            const path = window.location.pathname;
+            const poiMatch = path.match(/^\/poi\/([A-Z0-9]+)$/i); 
+
+            if (poiMatch) {
+                const deviceType = getDeviceType();
+
+                const poiId = poiMatch[1];
+                const params = new URLSearchParams(window.location.search);
+                const context = {
+                    poiIdToScroll: poiId,
+                    center_name: params.get('center_name'),
+                    center_lon: params.get('center_lon'),
+                    center_lat: params.get('center_lat'),
+                    search_kw: params.get('search_kw'),
+                    radius: params.get('radius'),
+                    count: params.get('count')
+                };
+
+                // 立即清理URL，避免用户刷新时重复触发。
+                history.replaceState(null, '', '/');
+
+                // 只有在非微信环境（例如从"在浏览器打开"跳转过来后）才执行自动还原
+                if (deviceType !== 'wechat') {
+                    // 只有在上下文信息完整时，才执行自动还原
+                    if (context.center_name && context.center_lon && context.center_lat && context.search_kw && context.radius && context.count) {
+                        restoreSearchAndScroll(context);
+                    }
+                }
+            }
+            // ===== 处理跳转逻辑结束 =====
+
+            const locationKeywordInput = document.getElementById('locationKeyword');
+            const totalCountInput = document.getElementById('totalCount');
+            const increaseBtn = document.getElementById('increaseBtn');
+            const decreaseBtn = document.getElementById('decreaseBtn');
+            const radiusInput = document.getElementById('radius');
+            const keywordsInput = document.getElementById('keywords');
+
+            // 当用户修改中心点关键字时，立即隐藏下方的周边搜索区域和状态信息
+            locationKeywordInput.addEventListener('input', function() {
+                document.getElementById('nearby-search-section').style.display = 'none';
+                document.getElementById('locationStatus').innerHTML = ''; // 同时清除旧的状态信息
+                document.getElementById('results').innerHTML = ''; // 新增: 清空地点列表结果
+            });
+
+            // 新增：当周边搜索关键字变化时，也清空旧的搜索结果
+            const clearResultsOnChange = () => {
+                document.getElementById('results').innerHTML = '';
+            };
+
+            keywordsInput.addEventListener('input', clearResultsOnChange);
+            
+            // 为"生成数量"输入框添加事件监听，实时校准
+            totalCountInput.addEventListener('input', function() {
+                const max = parseInt(this.max, 10);
+                if (parseInt(this.value, 10) > max) {
+                    this.value = max;
+                }
+            });
+            // 失焦时，确保值不为空或小于最小值
+            totalCountInput.addEventListener('change', function() {
+                const min = parseInt(this.min, 10);
+                if (this.value === '' || parseInt(this.value, 10) < min) {
+                    this.value = min;
+                }
+            });
+
+            // "生成数量" 增加按钮
+            increaseBtn.addEventListener('click', function() {
+                let currentValue = parseInt(totalCountInput.value, 10) || 0;
+                const max = parseInt(totalCountInput.max, 10);
+                let newValue = currentValue + 25;
+                if (newValue > max) {
+                    newValue = max;
+                }
+                totalCountInput.value = newValue;
+            });
+
+            // "生成数量" 减少按钮
+            decreaseBtn.addEventListener('click', function() {
+                let currentValue = parseInt(totalCountInput.value, 10) || 0;
+                const min = parseInt(totalCountInput.min, 10);
+                let newValue = currentValue - 25;
+                if (newValue < min) {
+                    newValue = min;
+                }
+                totalCountInput.value = newValue;
+            });
+
+            // 搜索半径输入框自动校准
+            // 为"搜索半径"输入框添加事件监听，实时校准
+            radiusInput.addEventListener('input', function() {
+                const max = parseInt(this.max, 10);
+                if (parseInt(this.value, 10) > max) {
+                    this.value = max;
+                }
+            });
+            // 失焦时，确保值不为空、小于最小值或为小数
+            radiusInput.addEventListener('change', function() {
+                const min = parseInt(this.min, 10);
+                let value = parseInt(this.value, 10);
+
+                if (isNaN(value) || value < min) {
+                    this.value = min;
+                } else {
+                    this.value = Math.floor(value); // 取整
+                }
+            });
+
+            // 绑定回车键为周边搜索
+            document.getElementById('keywords').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchNearby();
+                }
+            });
+
+            // 绑定中心点关键字搜索的回车键
+            document.getElementById('locationKeyword').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchLocationByKeyword();
+                }
+            });
+
+            // "回到顶部" 按钮功能
+            const scrollTopBtn = document.getElementById('scrollTopBtn');
+
+            // 当用户滚动页面时，决定是否显示按钮
+            window.onscroll = function() {
+                // 结合多种方式获取滚动距离，以实现最佳兼容性
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop;
+                if (scrollTop > 200) {
+                    scrollTopBtn.style.display = "block";
+                } else {
+                    scrollTopBtn.style.display = "none";
+                }
+            };
+
+            // 当用户点击按钮时，平滑滚动到顶部
+            scrollTopBtn.addEventListener('click', function() {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            });
+
+            // ===== WX Mask Logic =====
+            const wxGuideMask = document.getElementById('wx-guide-mask');
+
+            // 点击浮层仅隐藏它
+            wxGuideMask.addEventListener('click', () => {
+                wxGuideMask.style.display = 'none';
+            });
+
+            // ===== Lightbox (Image Gallery) Logic =====
+            const lightbox = document.getElementById('lightbox');
+            const lightboxContent = lightbox.querySelector('.lightbox-content');
+            const lightboxCaption = lightbox.querySelector('.lightbox-caption');
+            const closeBtn = lightbox.querySelector('.lightbox-close');
+            const prevBtn = lightbox.querySelector('.lightbox-prev');
+            const nextBtn = lightbox.querySelector('.lightbox-next');
+            const bottomCloseBtn = lightbox.querySelector('.lightbox-bottom-close');
+
+            function openLightbox(photos, poiId) {
+                // Ensure any open popover is closed first
+                const existingPopover = document.querySelector('.address-popover');
+                if (existingPopover) existingPopover.remove();
+
+                if (!lightbox || !photos || photos.length === 0) return;
+                currentPoiPhotos = photos;
+                currentPhotoIndex = 0;
+                lightbox.style.display = 'flex';
+                
+                lightboxContent.innerHTML = ''; // Clear previous images
+                
+                const img = document.createElement('img');
+                img.className = 'lightbox-image';
+                img.src = currentPoiPhotos[currentPhotoIndex].url;
+                lightboxContent.appendChild(img);
+                
+                lightboxCaption.textContent = `${currentPhotoIndex + 1} / ${currentPoiPhotos.length}`;
+
+                // Immediately try to fetch all photos for this POI
+                if (poiId) {
+                    fetchPoiDetails(poiId);
+                }
+            }
+
+            function closeLightbox() {
+                if (!lightbox) return;
+                // If an animation is in progress, stop it and reset state immediately
+                if (isLightboxAnimating) {
+                    const images = lightboxContent.querySelectorAll('.lightbox-image');
+                    images.forEach(img => {
+                        img.style.transition = 'none'; // Stop any ongoing transition
+                        // If there's more than one image, it's from a partial animation. Remove extras.
+                        if (img.parentElement && images.length > 1) {
+                           // Keep only the current one, remove others
+                           const imgSrc = currentPoiPhotos[currentPhotoIndex]?.url;
+                           if (img.src !== imgSrc) {
+                               img.remove();
+                           }
+                        }
+                    });
+                    isLightboxAnimating = false;
+                }
+                lightbox.style.display = 'none';
+                lightboxContent.innerHTML = ''; // Clear images on close
+            }
+
+            async function fetchPoiDetails(poiId) {
+                const params = {
+                    id: poiId,
+                    show_fields: 'photos'
+                };
+
+                try {
+                    const data = await callGaodeAPI('v5/place/detail', params);
+                    if (data.status === '1' && data.pois && data.pois.length > 0) {
+                        const detailPoi = data.pois[0];
+                        // If we got a more complete list of photos, update the gallery
+                        if (detailPoi.photos && detailPoi.photos.length > currentPoiPhotos.length) {
+                            currentPoiPhotos = detailPoi.photos;
+                            // Update the caption to reflect the new total
+                            lightboxCaption.textContent = `${currentPhotoIndex + 1} / ${currentPoiPhotos.length}`;
+                        }
+                    }
+                } catch (error) {
+                }
+            }
+
+            function showNextImage() {
+                if (isLightboxAnimating || currentPoiPhotos.length <= 1) return;
+                isLightboxAnimating = true;
+
+                const oldImg = lightboxContent.querySelector('.lightbox-image');
+                
+                currentPhotoIndex = (currentPhotoIndex + 1) % currentPoiPhotos.length;
+                const newImg = document.createElement('img');
+                newImg.className = 'lightbox-image';
+                newImg.src = currentPoiPhotos[currentPhotoIndex].url;
+                
+                // Position new image off-screen to the right without transition
+                newImg.style.transition = 'none';
+                newImg.style.transform = 'translateX(100%)';
+                lightboxContent.appendChild(newImg);
+
+                // Force browser to apply the initial transform before adding the transition
+                newImg.offsetHeight; 
+
+                // Add transitions and animate
+                newImg.style.transition = 'transform 0.4s ease-in-out';
+                newImg.style.transform = 'translateX(0)';
+                if (oldImg) {
+                    oldImg.style.transition = 'transform 0.4s ease-in-out';
+                    oldImg.style.transform = 'translateX(-100%)';
+                }
+                
+                lightboxCaption.textContent = `${currentPhotoIndex + 1} / ${currentPoiPhotos.length}`;
+
+                // Clean up after the new image has finished its transition
+                const transitionEndHandler = (event) => {
+                    // Ensure the event is for the new image and not a bubbled event
+                    if (event.target === newImg) {
+                        if (oldImg && oldImg.parentNode) {
+                            oldImg.remove();
+                        }
+                        isLightboxAnimating = false;
+                        newImg.removeEventListener('transitionend', transitionEndHandler);
+                    }
+                };
+                newImg.addEventListener('transitionend', transitionEndHandler);
+            }
+            
+            function showPrevImage() {
+                if (isLightboxAnimating || currentPoiPhotos.length <= 1) return;
+                isLightboxAnimating = true;
+
+                const oldImg = lightboxContent.querySelector('.lightbox-image');
+
+                currentPhotoIndex = (currentPhotoIndex - 1 + currentPoiPhotos.length) % currentPoiPhotos.length;
+                const newImg = document.createElement('img');
+                newImg.className = 'lightbox-image';
+                newImg.src = currentPoiPhotos[currentPhotoIndex].url;
+                
+                // Position new image off-screen to the left without transition
+                newImg.style.transition = 'none';
+                newImg.style.transform = 'translateX(-100%)';
+                lightboxContent.appendChild(newImg);
+                
+                // Force reflow
+                newImg.offsetHeight; 
+
+                // Add transitions and animate
+                newImg.style.transition = 'transform 0.4s ease-in-out';
+                newImg.style.transform = 'translateX(0)';
+                if (oldImg) {
+                    oldImg.style.transition = 'transform 0.4s ease-in-out';
+                    oldImg.style.transform = 'translateX(100%)';
+                }
+
+                lightboxCaption.textContent = `${currentPhotoIndex + 1} / ${currentPoiPhotos.length}`;
+                
+                // Clean up
+                const transitionEndHandler = (event) => {
+                    if (event.target === newImg) {
+                        if (oldImg && oldImg.parentNode) {
+                            oldImg.remove();
+                        }
+                        isLightboxAnimating = false;
+                        newImg.removeEventListener('transitionend', transitionEndHandler);
+                    }
+                };
+                newImg.addEventListener('transitionend', transitionEndHandler);
+            }
+
+            // Event listener for image clicks (delegated)
+            document.getElementById('results').addEventListener('click', function(e) {
+                if (e.target && e.target.classList.contains('lightbox-trigger')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const photosJson = e.target.getAttribute('data-photos');
+                    const poiId = e.target.getAttribute('data-poi-id');
+                    if (photosJson) {
+                        try {
+                           const photos = JSON.parse(photosJson);
+                           openLightbox(photos, poiId);
+                        } catch (err) {
+                        }
+                    }
+                }
+
+                if (e.target && e.target.classList.contains('address-btn')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    createAddressPopover(e.target);
+                }
+            });
+
+            function createAddressPopover(button) {
+                const oldPopover = document.querySelector('.address-popover');
+                let copyToast = document.getElementById('copy-toast');
+
+                if (!copyToast) {
+                    copyToast = document.createElement('div');
+                    copyToast.id = 'copy-toast';
+                    copyToast.className = 'copy-toast';
+                    copyToast.textContent = '详细地址已复制';
+                    document.body.appendChild(copyToast);
+                }
+
+                // If a popover exists and it's for the same button, just remove it and we're done.
+                if (oldPopover && oldPopover._ownerButton === button) {
+                    oldPopover.remove();
+                    return;
+                }
+
+                // If any other popover is open, remove it before creating the new one.
+                if (oldPopover) {
+                    oldPopover.remove();
+                }
+
+                // Ensure lightbox is closed
+                if (lightbox.style.display !== 'none') {
+                    closeLightbox();
+                }
+
+                const address = button.dataset.address;
+                const popover = document.createElement('div');
+                popover.className = 'address-popover';
+                popover.textContent = address;
+                popover._ownerButton = button; // Link the popover to its button
+
+                // 移动端长按复制功能
+                if (getDeviceType() !== 'pc') {
+                    // 长按复制功能
+                    let touchTimer;
+                    const startCopyTimer = () => {
+                        touchTimer = setTimeout(() => {
+                            navigator.clipboard.writeText(address).then(() => {
+                                // 显示复制成功提示
+                                copyToast.classList.add('show');
+                                setTimeout(() => {
+                                    copyToast.classList.remove('show');
+                                }, 1500);
+                                
+                                // 关闭弹窗
+                                popover.remove();
+                            });
+                        }, 500); // 长按半秒触发复制
+                    };
+
+                    const clearCopyTimer = () => {
+                        clearTimeout(touchTimer);
+                    };
+
+                    popover.addEventListener('touchstart', startCopyTimer);
+                    popover.addEventListener('touchend', clearCopyTimer);
+                    popover.addEventListener('touchcancel', clearCopyTimer);
+                }
+
+                // Stop the popover from closing when clicking inside it
+                popover.addEventListener('click', e => e.stopPropagation());
+                
+                document.body.appendChild(popover);
+
+                // Position it
+                const btnRect = button.getBoundingClientRect();
+                let top = btnRect.bottom + 8;
+                let left = btnRect.left;
+                
+                // 确保在移动端不会超出屏幕边缘
+                const rightEdge = left + popover.offsetWidth;
+                if (rightEdge > window.innerWidth - 10) {
+                    left = Math.max(10, window.innerWidth - 10 - popover.offsetWidth);
+                }
+                
+                popover.style.top = `${top}px`;
+                popover.style.left = `${left}px`;
+
+                // Add one-time listeners to close the popover on the next click OR scroll
+                setTimeout(() => {
+                    const closePopover = () => popover.remove();
+                    document.addEventListener('click', closePopover, { once: true });
+                    window.addEventListener('scroll', closePopover, { once: true });
+                }, 0);
+            }
+
+            // Lightbox control listeners
+            const closeHandler = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                closeLightbox();
+            };
+            closeBtn.addEventListener('mousedown', closeHandler);
+            closeBtn.addEventListener('touchstart', closeHandler, { passive: false });
+            bottomCloseBtn.addEventListener('mousedown', closeHandler);
+            bottomCloseBtn.addEventListener('touchstart', closeHandler, { passive: false });
+
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showNextImage();
+            });
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                showPrevImage();
+            });
+            // The old generic click handler is removed, replaced by specific close areas.
+
+            // Swipe functionality for mobile
+            let touchstartX = 0;
+            let touchendX = 0;
+            let touchstartY = 0;
+            let touchendY = 0;
+
+            lightbox.addEventListener('touchstart', function(event) {
+                touchstartX = event.changedTouches[0].screenX;
+                touchstartY = event.changedTouches[0].screenY;
+            }, false);
+
+            lightbox.addEventListener('touchend', function(event) {
+                touchendX = event.changedTouches[0].screenX;
+                touchendY = event.changedTouches[0].screenY;
+                handleSwipeGesture();
+            }, false);
+
+            function handleSwipeGesture() {
+                const dx = touchendX - touchstartX;
+                const dy = touchendY - touchstartY;
+
+                // Check for a swipe gesture (significant horizontal movement, minimal vertical movement)
+                if (Math.abs(dx) > 50 && Math.abs(dy) < 50) {
+                    if (dx < 0) { // Swiped left
+                        showNextImage();
+                    } else { // Swiped right
+                        showPrevImage();
+                    }
+                }
+                // A small movement is considered a tap, which will be handled by the 'click' event listener.
             }
         });
+
+        /* ===============================================
+           设备检测与地图跳转
+           =============================================== */
+        function getDeviceType() {
+            const ua = navigator.userAgent.toLowerCase();
+            if (/micromessenger/.test(ua)) {
+                return 'wechat';
+            }
+            if (/iphone|ipad|ipod/.test(ua)) {
+                return 'ios';
+            }
+            if (/android/.test(ua)) {
+                return 'android';
+            }
+            return 'pc';
+        }
+
+        /**
+         * Dynamically generates map URL and opens it in a new tab.
+         * This ensures the device type is checked at the moment of click.
+         * @param {Event} event - The click event.
+         * @param {string} poiId - The ID of the POI.
+         */
+        function openMapForPoi(event, poiId) {
+            event.preventDefault();
+            // 防止重复点击
+            if(linkClicked) return;
+            linkClicked = true;
+            
+            const poi = originalDistanceSortedPois.find(p => p.id === poiId);
+            if (!poi) {
+                alert('抱歉，无法生成地图链接，未找到该地点的详细信息。');
+                linkClicked = false;
+                return;
+            }
+
+            const deviceType = getDeviceType();
+            const mapUrl = getMapUrl(poi);
+
+            if (deviceType === 'wechat') {
+                // 在微信中，使用 history.pushState 修改URL，然后显示引导蒙层
+                const centerName = document.getElementById('locationKeyword').value;
+                const centerLon = document.getElementById('longitude').value;
+                const centerLat = document.getElementById('latitude').value;
+                const searchKw = document.getElementById('keywords').value;
+                
+                // 使用上次搜索时记录的参数，如果记录不存在，则回退到当前输入框的值
+                const radius = lastUsedSearchParams.radius !== undefined ? lastUsedSearchParams.radius : document.getElementById('radius').value;
+                const count = lastUsedSearchParams.count !== undefined ? lastUsedSearchParams.count : document.getElementById('totalCount').value;
+
+                const params = new URLSearchParams();
+                params.set('center_name', centerName);
+                params.set('center_lon', centerLon);
+                params.set('center_lat', centerLat);
+                params.set('search_kw', searchKw);
+                params.set('radius', radius);
+                params.set('count', count);
+                
+                const newUrl = `/poi/${poi.id}?${params.toString()}`;
+
+                history.pushState({ poiId: poi.id }, '', newUrl);
+                document.getElementById('wx-guide-mask').style.display = 'flex';
+
+            } else if (deviceType === 'ios' || deviceType === 'android') {
+                // 在移动设备上尝试打开高德地图APP
+                window.location.href = mapUrl;
+
+            } else { // PC端
+                window.open(mapUrl, '_blank', 'noopener,noreferrer');
+            }
+            
+            // 500ms后重置标记，防止重复点击
+            setTimeout(() => {
+                linkClicked = false;
+            }, 500);
+        }
+
+        /**
+         * NEW: Orchestrates the click animation and delayed navigation.
+         * This solves the conflict between CSS transform and click events.
+         * @param {Event} event
+         * @param {string} poiId
+         */
+        async function handlePoiClick(event, poiId) {
+            event.preventDefault();
+            const contentElement = event.currentTarget.querySelector('.poi-name-content');
+
+            // 移除所有已选择和按下效果，确保无闪烁
+            document.querySelectorAll('.poi-name-content.selected, .poi-name-content.pressed').forEach(item => {
+                if (item !== contentElement) {
+                    item.classList.remove('selected', 'pressed');
+                }
+            });
+            
+            // 为当前点击项添加选中样式
+            contentElement.classList.add('selected');
+            contentElement.classList.add('pressed');
+
+            // 在动画完成后移除pressed效果
+            await sleep(200);
+            contentElement.classList.remove('pressed');
+
+            // 触发导航
+            openMapForPoi(event, poiId);
+        }
+
+        /**
+         * 新增：根据URL中的上下文信息，自动还原搜索并滚动到指定POI
+         * @param {object} context - 包含所有搜索参数和目标POI ID的对象
+         */
+        async function restoreSearchAndScroll(context) {
+            const loader = document.getElementById('restore-loader-overlay');
+            loader.style.display = 'flex'; // Show loader
+
+            try {
+                const statusDiv = document.getElementById('locationStatus');
+                // statusDiv.innerHTML = `<div class="info-prompt">正在根据链接自动还原搜索...</div>`; // This is now handled by the overlay
+
+                // 步骤1: 自动定位中心点
+                document.getElementById('locationKeyword').value = context.center_name;
+                await searchLocationByKeyword(true); // 使用 true 以激活自动化模式
+
+                // 检查中心点是否定位成功
+                const lon = document.getElementById('longitude').value;
+                if (!lon) {
+                    statusDiv.innerHTML = `<div class="error">自动定位中心点 "${context.center_name}" 失败，请手动搜索。</div>`;
+                    return;
+                }
+
+                // 步骤2: 填充其他搜索参数
+                document.getElementById('keywords').value = context.search_kw;
+                document.getElementById('radius').value = context.radius;
+                document.getElementById('totalCount').value = context.count;
+
+                // 步骤3: 执行周边搜索
+                await searchNearby();
+
+                // 步骤4: 滚动到目标POI并高亮显示
+                const targetElement = document.getElementById(`poi-item-${context.poiIdToScroll}`);
+                if (targetElement) {
+                    // 滚动到视图中央，提供更好的上下文
+                    targetElement.scrollIntoView({ behavior: 'auto', block: 'center' });
+                    
+                    // 添加高亮效果，让用户能立刻注意到
+                    targetElement.style.transition = 'background-color 1s ease-in-out';
+                    targetElement.style.backgroundColor = '#e6f7ff'; // 使用主题蓝色
+                    setTimeout(() => {
+                        targetElement.style.backgroundColor = ''; // 2.5秒后恢复原状
+                    }, 2500);
+
+                    // ===== New Arrow Logic =====
+                    const arrowContainer = document.getElementById('arrow-container');
+                    if (arrowContainer) {
+                        const targetRect = targetElement.getBoundingClientRect();
+                        
+                        // Position the container. The arrow's visual center should be at 1/4 width of the target.
+                        const arrowVisualWidth = 60; // as defined in CSS
+                        const arrowLeft = targetRect.left + (targetRect.width / 4) - (arrowVisualWidth / 2);
+                        const arrowTop = targetRect.top + window.scrollY - 75; // 60px arrow height + 15px gap
+
+                        arrowContainer.style.top = `${arrowTop}px`;
+                        arrowContainer.style.left = `${arrowLeft}px`;
+                        
+                        // Make it visible with a fade-in effect
+                        arrowContainer.style.display = 'flex';
+                        setTimeout(() => {
+                            arrowContainer.style.opacity = '1';
+                        }, 10);
+
+                        // Fade out and hide after 3 seconds
+                        setTimeout(() => {
+                            arrowContainer.style.opacity = '0';
+                            // Hide completely after the transition ends
+                            setTimeout(() => {
+                                arrowContainer.style.display = 'none';
+                            }, 400); // Must match CSS transition duration
+                        }, 3000);
+                    }
+                }
+            } catch (error) {
+                const statusDiv = document.getElementById('locationStatus');
+                statusDiv.innerHTML = `<div class="error">自动还原搜索失败: ${error.message}</div>`;
+            } finally {
+                loader.style.display = 'none'; // Hide loader
+            }
+        }
     </script>
 </body>
 </html>
